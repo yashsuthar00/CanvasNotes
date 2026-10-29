@@ -16,7 +16,7 @@ import {
   uid,
   dependents,
 } from './store';
-import { COLUMN_CHILD_TYPES, DEFAULT_WIDTH, type El, type ElementType } from './types';
+import { COLUMN_CHILD_TYPES, DEFAULT_WIDTH, type El, type ElementOf, type ElementType } from './types';
 import { allRects, contains, viewCenter } from './viewport';
 import { importSpreadsheet, isSpreadsheet } from './moreActions';
 
@@ -157,8 +157,12 @@ export function addLink(url: string, at: Placement = centerPlacement()) {
 
 export async function fetchLinkPreview(id: string, url: string) {
   patchElement(id, { content: { url, loading: true } }, { history: false });
+  const imageBefore = (getState().elements[id] as ElementOf<'link'> | undefined)?.content.image;
   const info = await api.unfurl(url).catch(() => ({ ok: false }) as api.Unfurled);
-  if (!getState().elements[id]) return;
+  const now = getState().elements[id] as ElementOf<'link'> | undefined;
+  if (!now) return;
+  // A preview image picked while this was loading (Replace Preview) wins over the fetched one.
+  const imageChanged = now.content.image !== imageBefore;
   patchElement(
     id,
     {
@@ -167,7 +171,7 @@ export async function fetchLinkPreview(id: string, url: string) {
         loading: false,
         title: info.title ?? null,
         description: info.description ?? null,
-        image: info.image ?? null,
+        image: imageChanged ? now.content.image : (info.image ?? null),
         site: info.site ?? hostOf(url),
       },
     },

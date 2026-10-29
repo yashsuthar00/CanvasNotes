@@ -1474,6 +1474,10 @@ async (page) => {
     await cardMenu(original.id, 'Create Synced Copy');
     const copy = await created(before, 'note');
     assert(copy.syncId, 'copy not synced');
+    // The copy is placed beside the original and can land past the window's edge: fit everything first.
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Shift+!');
+    await wait(500);
     await cardMenu(copy.id, 'Stop Syncing This Copy');
     await settle();
     assert(!(await el(copy.id)).syncId, 'still synced');
