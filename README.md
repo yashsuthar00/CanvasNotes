@@ -1,5 +1,7 @@
 # Canvas Notes
 
+[![Featured on Made with REA](https://madewithrea.com/badges/featured.svg)](https://madewithrea.com/builds/canvas-notes-self-hosted-milanote-style-board-app-features-mapped-with)
+
 A self-hosted visual notes app in the style of Milanote. Put notes,
 headings, to-do lists, tables, sketches, documents, images, files, links,
 videos, maps and colour swatches anywhere on an endless board. Group them in
