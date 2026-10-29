@@ -549,4 +549,61 @@ await check('L26', 'Upgrade: a database from before accounts is backed up, and t
   assert((await state(p, s2.base)).status === 200, 'session lost after restart');
 });
 
+
+// ------------------------------------------------------------------ deleted files are really deleted
+let sweepServer;
+await check('L27', 'Deleting an image frees its file and space; Trash keeps it; a copy another account uploaded stays theirs', async () => {
+  // A 2-second grace period instead of 30 minutes, so the test doesn't wait.
+  const s = (sweepServer = await startServer('sweep', 5198, { CANVASNOTES_FILE_GRACE_MIN: '0.03' }));
+  const p = await newPage();
+  const q = await newPage();
+  await apiSignup(p, s.base, `sweep-${rand()}@example.com`);
+  await apiSignup(q, s.base, `sweep2-${rand()}@example.com`);
+  const upload = async (page, tag) => (await (await page.request.post(`${s.base}/api/upload?name=${tag}.png`, { data: Buffer.concat([PNG, Buffer.from(tag)]), headers: { 'content-type': 'image/png' } })).json()).url;
+  const gone = `gone-${rand()}`;
+  const trash = `trash-${rand()}`;
+  const never = `never-${rand()}`;
+  const shared = `shared-${rand()}`;
+  const [fGone, fTrash, fNever, fShared] = [await upload(p, gone), await upload(p, trash), await upload(p, never), await upload(p, shared)];
+  await upload(q, shared);
+  const trashed = { ...image('img-trash', fTrash, 'root'), section: 'trash' };
+  await ops(p, s.base, [{ op: 'put', el: image('img-gone', fGone, 'root') }, { op: 'put', el: trashed }, { op: 'put', el: image('img-shared', fShared, 'root') }]);
+  await ops(q, s.base, [{ op: 'put', el: image('q-shared', fShared, 'root') }]);
+  const before = (await (await p.request.get(`${s.base}/api/state`)).json()).storage.used;
+  await ops(p, s.base, [{ op: 'del', id: 'img-gone' }, { op: 'del', id: 'img-shared' }]);
+  await wait(9000);
+  const disk = readdirSync(path.join(s.dir, 'files'));
+  const name = (u) => u.split('/').pop();
+  assert((await p.request.get(`${s.base}${fGone}`)).status() === 404 && !disk.includes(name(fGone)), 'deleted image still stored');
+  assert(!disk.includes(name(fNever)), 'upload never put on a card still stored');
+  assert((await p.request.get(`${s.base}${fTrash}`)).status() === 200, 'file of a card in the Trash was deleted');
+  assert((await p.request.get(`${s.base}${fShared}`)).status() === 404, 'the account that deleted its card can still load the shared file');
+  assert(disk.includes(name(fShared)) && (await q.request.get(`${s.base}${fShared}`)).status() === 200, "the other account lost its copy");
+  const after = (await (await p.request.get(`${s.base}/api/state`)).json()).storage.used;
+  assert(after < before, `storage not freed: ${before} → ${after}`);
+  fact(`storage used ${before} → ${after} bytes; deleted, never-used and released files removed; Trash file kept; other account's copy kept on disk and loads for them`);
+});
+
+await check('L28', 'Undo right after deleting an image keeps the file; the Account dialog shows storage used', async () => {
+  const s = sweepServer;
+  const p = await newPage();
+  await apiSignup(p, s.base, `undo-${rand()}@example.com`);
+  const url = (await (await p.request.post(`${s.base}/api/upload?name=u.png`, { data: Buffer.concat([PNG, Buffer.from(rand())]), headers: { 'content-type': 'image/png' } })).json()).url;
+  await ops(p, s.base, [{ op: 'put', el: image('undo-img', url, 'root') }]);
+  await ops(p, s.base, [{ op: 'del', id: 'undo-img' }]);
+  await wait(500);
+  await ops(p, s.base, [{ op: 'put', el: image('undo-img', url, 'root') }]);
+  await wait(9000);
+  assert((await p.request.get(`${s.base}${url}`)).status() === 200, 'file deleted although the card came back');
+  await p.goto(s.base);
+  await p.waitForSelector('.toolbar');
+  await p.click('.topbar button[title="More"]');
+  await p.locator('.menu button', { hasText: 'Account' }).first().click();
+  await p.waitForSelector('.storage-meter');
+  const text = await p.textContent('.storage-meter');
+  assert(/Storage: .* of 1\.0 GB used/.test(text), `meter says "${text}"`);
+  await shot(p, 'storage meter in the Account dialog');
+  fact(`meter: "${text}"`);
+});
+
 await suite.finish();

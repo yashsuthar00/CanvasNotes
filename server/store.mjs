@@ -91,10 +91,13 @@ export function openStore(file, { maxElementBytes = 5 * 1024 * 1024, maxUserByte
         name TEXT NOT NULL,
         size INTEGER NOT NULL,
         created_at INTEGER NOT NULL,
+        orphaned_at INTEGER,
         PRIMARY KEY (user_id, name)
       );
       CREATE INDEX IF NOT EXISTS uploads_name ON uploads(name);
     `);
+    // Added after the first accounts release: when a file stopped being used by any of the account's cards.
+    if (!columns(db, 'uploads').includes('orphaned_at')) db.exec('ALTER TABLE uploads ADD COLUMN orphaned_at INTEGER');
     db.exec('COMMIT');
   } catch (err) {
     db.exec('ROLLBACK');
@@ -135,7 +138,13 @@ export function openStore(file, { maxElementBytes = 5 * 1024 * 1024, maxUserByte
     deleteExpired: db.prepare('DELETE FROM sessions WHERE expires_at <= ?'),
     claimElements: db.prepare("UPDATE elements SET user_id = ? WHERE user_id = ''"),
     claimLocks: db.prepare("UPDATE board_locks SET user_id = ? WHERE user_id = ''"),
-    insertUpload: db.prepare('INSERT INTO uploads (user_id, name, size, created_at) VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING'),
+    // Uploading a file again brings it back into use.
+    insertUpload: db.prepare('INSERT INTO uploads (user_id, name, size, created_at) VALUES (?, ?, ?, ?) ON CONFLICT(user_id, name) DO UPDATE SET orphaned_at = NULL'),
+    uploadsOf: db.prepare('SELECT name, size, created_at, orphaned_at FROM uploads WHERE user_id = ?'),
+    uploaders: db.prepare('SELECT DISTINCT user_id FROM uploads'),
+    fileRefs: db.prepare("SELECT data FROM elements WHERE user_id = ? AND data LIKE '%/files/%'"),
+    setOrphaned: db.prepare('UPDATE uploads SET orphaned_at = ? WHERE user_id = ? AND name = ?'),
+    deleteUpload: db.prepare('DELETE FROM uploads WHERE user_id = ? AND name = ?'),
     ownsUpload: db.prepare('SELECT 1 FROM uploads WHERE user_id = ? AND name = ?'),
     usedBytes: db.prepare('SELECT COALESCE(SUM(size), 0) AS n FROM uploads WHERE user_id = ?'),
     userUploads: db.prepare('SELECT name FROM uploads WHERE user_id = ?'),
@@ -276,6 +285,20 @@ export function openStore(file, { maxElementBytes = 5 * 1024 * 1024, maxUserByte
       q.insertUpload.run(userId, name, size, Date.now());
     },
     ownsUpload: (userId, name) => !!q.ownsUpload.get(userId, name),
+    uploadsOf: (userId) => q.uploadsOf.all(userId),
+    uploaders: () => q.uploaders.all().map((r) => r.user_id),
+    // Every uploaded file any of the account's cards points at (in any field, any section, Trash included).
+    referencedFiles(userId) {
+      const names = new Set();
+      for (const { data } of q.fileRefs.all(userId)) for (const m of data.matchAll(/\/files\/([0-9a-f]{16,64}(?:\.[a-z0-9]{1,8})?)/g)) names.add(m[1]);
+      return names;
+    },
+    setOrphaned: (userId, name, at) => q.setOrphaned.run(at, userId, name),
+    // Removes the account's claim on a file; returns true when no account owns it any more.
+    releaseUpload(userId, name) {
+      q.deleteUpload.run(userId, name);
+      return q.uploadOwners.get(name).n === 0;
+    },
     usedBytes: (userId) => q.usedBytes.get(userId).n,
 
     close() {

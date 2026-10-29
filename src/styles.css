@@ -3191,6 +3191,22 @@ body {
 }
 
 /* account dialog */
+.storage-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.storage-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--panel-2);
+  overflow: hidden;
+}
+.storage-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
 .account-body {
   /* The dialog sits 12vh from the top; the rest scrolls on short screens. */
   max-height: calc(100dvh - 12vh - 70px);

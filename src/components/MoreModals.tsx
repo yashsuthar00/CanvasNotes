@@ -304,7 +304,7 @@ export function BoardPasswordModal({ id, mode }: { id: string; mode: 'set' | 'un
 const MIN_PASSWORD = 8;
 
 export function AccountModal() {
-  const user = getState().user;
+  const { user, storage } = getState();
   const [name, setName] = useState(user?.name ?? '');
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
@@ -353,6 +353,14 @@ export function AccountModal() {
       <div className="account-body">
         <div className="export-section account-section">
           <p className="side-sub">{t('Signed in as {email}', { email: user?.email ?? '' })}</p>
+          {storage && (
+            <div className="storage-meter" title={t('Files you delete free their space within about 30 minutes.')}>
+              <div className="storage-bar">
+                <span style={{ width: `${Math.min(100, (storage.used / storage.quota) * 100)}%` }} />
+              </div>
+              <p className="side-sub">{t('Storage: {used} of {total} used', { used: formatSize(storage.used), total: formatSize(storage.quota) })}</p>
+            </div>
+          )}
           <label className="field-label" htmlFor="account-name">
             {t('Name')}
           </label>

@@ -616,6 +616,8 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Too many attempts. Try again in a few minutes.": "Demasiados intentos. Vuelve a intentarlo en unos minutos.",
     "Too many requests. Try again later.": "Demasiadas solicitudes. Inténtalo más tarde.",
     "Your storage is full. Delete some files and try again.": "Tu almacenamiento está lleno. Elimina algunos archivos e inténtalo de nuevo.",
+    "Storage: {used} of {total} used": "Almacenamiento: {used} de {total} usados",
+    "Files you delete free their space within about 30 minutes.": "Los archivos que eliminas liberan su espacio en unos 30 minutos.",
   },
   fr: {
     "! space": "! espace",
@@ -1232,6 +1234,8 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Too many attempts. Try again in a few minutes.": "Trop de tentatives. Réessayez dans quelques minutes.",
     "Too many requests. Try again later.": "Trop de requêtes. Réessayez plus tard.",
     "Your storage is full. Delete some files and try again.": "Votre espace de stockage est plein. Supprimez des fichiers et réessayez.",
+    "Storage: {used} of {total} used": "Stockage : {used} utilisés sur {total}",
+    "Files you delete free their space within about 30 minutes.": "Les fichiers supprimés libèrent leur espace en 30 minutes environ.",
   },
   pt: {
     "! space": "! espaço",
@@ -1848,6 +1852,8 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Too many attempts. Try again in a few minutes.": "Muitas tentativas. Tente novamente em alguns minutos.",
     "Too many requests. Try again later.": "Muitas solicitações. Tente mais tarde.",
     "Your storage is full. Delete some files and try again.": "Seu armazenamento está cheio. Exclua alguns arquivos e tente novamente.",
+    "Storage: {used} of {total} used": "Armazenamento: {used} de {total} usados",
+    "Files you delete free their space within about 30 minutes.": "Os arquivos excluídos liberam o espaço em cerca de 30 minutos.",
   },
   de: {
     "! space": "! Leertaste",
@@ -2464,6 +2470,8 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Too many attempts. Try again in a few minutes.": "Zu viele Versuche. Versuche es in ein paar Minuten erneut.",
     "Too many requests. Try again later.": "Zu viele Anfragen. Versuche es später erneut.",
     "Your storage is full. Delete some files and try again.": "Dein Speicher ist voll. Lösche einige Dateien und versuche es erneut.",
+    "Storage: {used} of {total} used": "Speicher: {used} von {total} belegt",
+    "Files you delete free their space within about 30 minutes.": "Gelöschte Dateien geben ihren Platz nach etwa 30 Minuten frei.",
   },
   it: {
     "! space": "! spazio",
@@ -3080,6 +3088,8 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Too many attempts. Try again in a few minutes.": "Troppi tentativi. Riprova tra qualche minuto.",
     "Too many requests. Try again later.": "Troppe richieste. Riprova più tardi.",
     "Your storage is full. Delete some files and try again.": "Lo spazio di archiviazione è pieno. Elimina alcuni file e riprova.",
+    "Storage: {used} of {total} used": "Spazio: {used} di {total} usati",
+    "Files you delete free their space within about 30 minutes.": "I file eliminati liberano spazio entro circa 30 minuti.",
   },
   nl: {
     "! space": "! spatie",
@@ -3696,6 +3706,8 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Too many attempts. Try again in a few minutes.": "Te veel pogingen. Probeer het over een paar minuten opnieuw.",
     "Too many requests. Try again later.": "Te veel verzoeken. Probeer het later opnieuw.",
     "Your storage is full. Delete some files and try again.": "Je opslag is vol. Verwijder enkele bestanden en probeer het opnieuw.",
+    "Storage: {used} of {total} used": "Opslag: {used} van {total} gebruikt",
+    "Files you delete free their space within about 30 minutes.": "Verwijderde bestanden geven hun ruimte binnen ongeveer 30 minuten vrij.",
   },
   pl: {
     "! space": "! spacja",
@@ -4312,6 +4324,8 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Too many attempts. Try again in a few minutes.": "Zbyt wiele prób. Spróbuj ponownie za kilka minut.",
     "Too many requests. Try again later.": "Zbyt wiele żądań. Spróbuj później.",
     "Your storage is full. Delete some files and try again.": "Twoje miejsce jest pełne. Usuń kilka plików i spróbuj ponownie.",
+    "Storage: {used} of {total} used": "Miejsce: użyto {used} z {total}",
+    "Files you delete free their space within about 30 minutes.": "Usunięte pliki zwalniają miejsce w ciągu około 30 minut.",
   },
   ru: {
     "! space": "! пробел",
@@ -4928,6 +4942,8 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Too many attempts. Try again in a few minutes.": "Слишком много попыток. Повторите через несколько минут.",
     "Too many requests. Try again later.": "Слишком много запросов. Попробуйте позже.",
     "Your storage is full. Delete some files and try again.": "Хранилище заполнено. Удалите несколько файлов и попробуйте снова.",
+    "Storage: {used} of {total} used": "Хранилище: занято {used} из {total}",
+    "Files you delete free their space within about 30 minutes.": "Удалённые файлы освобождают место примерно через 30 минут.",
   },
   ja: {
     "! space": "! スペース",
@@ -5544,6 +5560,8 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Too many attempts. Try again in a few minutes.": "試行回数が多すぎます。数分後にもう一度お試しください。",
     "Too many requests. Try again later.": "リクエストが多すぎます。後でもう一度お試しください。",
     "Your storage is full. Delete some files and try again.": "ストレージがいっぱいです。ファイルを削除してからもう一度お試しください。",
+    "Storage: {used} of {total} used": "ストレージ:{total} 中 {used} 使用",
+    "Files you delete free their space within about 30 minutes.": "削除したファイルの容量は約30分以内に解放されます。",
   },
   zh: {
     "! space": "! 空格",
@@ -6160,6 +6178,8 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Too many attempts. Try again in a few minutes.": "尝试次数过多,请几分钟后再试。",
     "Too many requests. Try again later.": "请求过多,请稍后再试。",
     "Your storage is full. Delete some files and try again.": "存储空间已满。请删除一些文件后重试。",
+    "Storage: {used} of {total} used": "存储空间:已用 {used},共 {total}",
+    "Files you delete free their space within about 30 minutes.": "删除的文件会在约 30 分钟内释放空间。",
   },
   ko: {
     "! space": "! 스페이스",
@@ -6776,5 +6796,7 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Too many attempts. Try again in a few minutes.": "시도 횟수가 너무 많습니다. 몇 분 후 다시 시도하세요.",
     "Too many requests. Try again later.": "요청이 너무 많습니다. 나중에 다시 시도하세요.",
     "Your storage is full. Delete some files and try again.": "저장 공간이 가득 찼습니다. 파일을 삭제한 후 다시 시도하세요.",
+    "Storage: {used} of {total} used": "저장 공간: {total} 중 {used} 사용",
+    "Files you delete free their space within about 30 minutes.": "삭제한 파일의 공간은 약 30분 안에 확보됩니다.",
   },
 };

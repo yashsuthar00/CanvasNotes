@@ -10,6 +10,7 @@ import { unfurl } from './unfurl.mjs';
 import { buildZip } from './zip.mjs';
 import { createAccounts, installSecret, rateLimiter } from './accounts.mjs';
 import { authPage } from './authPage.mjs';
+import { createFileSweeper } from './filesweep.mjs';
 import { createBoards } from './boards.mjs';
 import { fetchImportable, generateIdeas, searchImages } from './integrations.mjs';
 
@@ -25,6 +26,8 @@ const INVITE_CODE = process.env.CANVASNOTES_INVITE_CODE || '';
 const TRUST_PROXY = /^(1|true|yes)$/i.test(process.env.CANVASNOTES_TRUST_PROXY || '');
 // Upload space per account.
 const QUOTA_BYTES = Number(process.env.CANVASNOTES_QUOTA_MB || 1024) * 1024 * 1024;
+// How long an upload that no card uses any more is kept before it is deleted.
+const FILE_GRACE_MS = Number(process.env.CANVASNOTES_FILE_GRACE_MIN || 30) * 60_000;
 const MAX_UPLOAD = 100 * 1024 * 1024;
 const MAX_JSON = 50 * 1024 * 1024;
 
@@ -99,6 +102,15 @@ const legacyFiles = () =>
   });
 const accounts = createAccounts(store, { signups: SIGNUPS, inviteCode: INVITE_CODE, trustProxy: TRUST_PROXY, legacyFiles });
 const boards = createBoards({ store, secret: installSecret(DATA_DIR) });
+const sweeper = createFileSweeper({ store, filesDir: FILES_DIR, graceMs: FILE_GRACE_MS, log: (m) => console.log(m) });
+// Finishes deletions whose grace period has passed (and catches anything a change-triggered sweep missed).
+setInterval(() => {
+  try {
+    sweeper.sweepAll();
+  } catch (err) {
+    console.error('file sweep failed', err);
+  }
+}, Math.max(1000, Math.min(5 * 60_000, FILE_GRACE_MS))).unref();
 // Calls that cost money or make the server fetch the web, per account.
 const ideasLimit = rateLimiter(30, 60 * 60 * 1000);
 const fetchLimit = rateLimiter(300, 60 * 60 * 1000);
@@ -180,7 +192,7 @@ async function handleApi(req, res, url, user) {
   const route = `${req.method} ${url.pathname}`;
   switch (route) {
     case 'GET /api/state':
-      return send(res, 200, { elements: boards.visible(req, user.id), auth: true, user });
+      return send(res, 200, { elements: boards.visible(req, user.id), auth: true, user, storage: { used: store.usedBytes(user.id), quota: QUOTA_BYTES } });
     case 'POST /api/account/profile':
       return reply(res, accounts.updateProfile(user, await readJson(req)));
     case 'POST /api/account/password':
@@ -194,6 +206,7 @@ async function handleApi(req, res, url, user) {
       const { ops } = await readJson(req);
       if (!Array.isArray(ops)) return send(res, 400, { error: 'ops must be an array' });
       store.apply(user.id, ops);
+      sweeper.soon(user.id);
       return send(res, 200, { ok: true, applied: ops.length });
     }
     case 'POST /api/upload': {
@@ -239,6 +252,7 @@ async function handleApi(req, res, url, user) {
       const { elements, mode } = await readJson(req);
       if (!Array.isArray(elements)) return send(res, 400, { error: 'elements must be an array' });
       store.importAll(user.id, elements, mode === 'replace');
+      sweeper.soon(user.id);
       return send(res, 200, { ok: true, imported: elements.length });
     }
     default: {

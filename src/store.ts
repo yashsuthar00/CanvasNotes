@@ -40,6 +40,7 @@ export interface State {
   presenting: boolean;
   authEnabled: boolean;
   user: api.User | null;
+  storage: api.Storage | null;
   // Viewing a published board: nothing can be changed or saved.
   readOnly: boolean;
   publicRoot: string | null;
@@ -87,6 +88,7 @@ let state: State = {
   presenting: false,
   authEnabled: false,
   user: null,
+  storage: null,
   readOnly: false,
   publicRoot: null,
 };
@@ -174,10 +176,10 @@ window.addEventListener('beforeunload', (e) => {
 
 export async function load() {
   try {
-    const { elements, auth, user } = await api.fetchState();
+    const { elements, auth, user, storage } = await api.fetchState();
     const map: Record<string, El> = {};
     for (const el of elements) map[el.id] = el;
-    setState({ elements: map, loaded: true, loadError: null, authEnabled: auth, user });
+    setState({ elements: map, loaded: true, loadError: null, authEnabled: auth, user, storage });
     if (state.boardId !== ROOT_ID && !map[state.boardId]) navigate(ROOT_ID);
   } catch (err) {
     setState({ loadError: err instanceof Error ? err.message : String(err) });

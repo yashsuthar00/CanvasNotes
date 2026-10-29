@@ -48,6 +48,7 @@ and nobody else on the network can make one.
 | `CANVASNOTES_INVITE_CODE` | unset | If set, new accounts need this code (except the first) |
 | `CANVASNOTES_QUOTA_MB` | `1024` | Upload space per account |
 | `CANVASNOTES_DATA_MB` | `200` | Space for cards (notes, boards…) per account |
+| `CANVASNOTES_FILE_GRACE_MIN` | `30` | Minutes an upload no card uses any more is kept before it's deleted |
 | `CANVASNOTES_TRUST_PROXY` | unset | `1` behind a reverse proxy (Caddy, nginx), so rate limits see the real client IP |
 | `ANTHROPIC_API_KEY` | unset | Optional. Turns on **AI Ideas** (brainstorm cards with Claude) |
 
@@ -102,6 +103,11 @@ formats, the default currency and 12/24-hour time are set per device in
 - Note content is cleaned before it's shown, and a Content-Security-Policy only
   lets the app run its own scripts. Requests that change data must come from
   the app's own pages. Link previews can't reach private network addresses.
+- Deleting really deletes: once no card of the account uses an uploaded file
+  any more (cards in the Trash still count as using it), the file is deleted
+  after `CANVASNOTES_FILE_GRACE_MIN` minutes, so Undo right after a delete still
+  works. The space comes back to the account, and the file leaves the disk once
+  no other account uploaded the same file. **⋯ → Account** shows the space used.
 - Limits: 5 MB per card, `CANVASNOTES_DATA_MB` (200) of cards per account,
   `CANVASNOTES_QUOTA_MB` (1024) of uploads per account.
 - There's no email service, so a forgotten password is reset on the server:
@@ -158,7 +164,7 @@ gestures in a phone-sized touch context. It signs up a fresh account first. Star
 a server with an empty `DATA_DIR` first, for example `DATA_DIR=/tmp/cn-test npm start`.
 
 `npm run test:accounts` checks sign-up, sign-in, sessions, account settings and
-that accounts can't see or change each other's data (26 checks, about 20 seconds).
+that accounts can't see or change each other's data (28 checks, about 40 seconds).
 
 `npm run test:security` tries the attacks one account or a stranger could make:
 script hidden in notes, uploaded pages, `javascript:` links, cross-site requests,

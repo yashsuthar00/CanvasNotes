@@ -26,10 +26,16 @@ export function userKey(key: string): string {
   return currentUserId ? `${key}:${currentUserId}` : key;
 }
 
-export async function fetchState(): Promise<{ elements: El[]; auth: boolean; user: User | null }> {
-  const data = await json<{ elements: El[]; auth?: boolean; user?: User }>(await fetch('/api/state'));
+// Upload space: bytes in use and the account's limit.
+export interface Storage {
+  used: number;
+  quota: number;
+}
+
+export async function fetchState(): Promise<{ elements: El[]; auth: boolean; user: User | null; storage: Storage | null }> {
+  const data = await json<{ elements: El[]; auth?: boolean; user?: User; storage?: Storage }>(await fetch('/api/state'));
   currentUserId = data.user?.id ?? '';
-  return { elements: data.elements, auth: !!data.auth, user: data.user ?? null };
+  return { elements: data.elements, auth: !!data.auth, user: data.user ?? null, storage: data.storage ?? null };
 }
 
 export async function fetchPublic(token: string): Promise<{ board: string; elements: El[] }> {
