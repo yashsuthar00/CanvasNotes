@@ -1514,6 +1514,34 @@ async (page) => {
     assert(back.includes(boardK.id) && fwd.includes(childK.id), `${back} / ${fwd}`);
     await go(`#/b/${boardK.id}`);
   });
+  await check('K22', 'Arrow keys with nothing selected glide around the board; not while typing', async () => {
+    await go(`#/b/${boardK.id}`);
+    await page.keyboard.press('Escape');
+    const at = () => page.$eval('.world', (n) => n.style.transform.match(/-?[\d.]+/g).slice(0, 2).map(Number));
+    const a = await at();
+    await page.keyboard.down('ArrowRight');
+    await page.keyboard.down('ArrowDown');
+    await wait(400);
+    await page.keyboard.up('ArrowRight');
+    await page.keyboard.up('ArrowDown');
+    const b = await at();
+    await wait(200);
+    const c = await at();
+    assert(b[0] < a[0] - 100 && b[1] < a[1] - 100, `view did not move right and down: ${a} → ${b}`);
+    assert(c[0] === b[0] && c[1] === b[1], `kept moving after the keys were released: ${b} → ${c}`);
+    await page.keyboard.press('Shift+!'); // fit the board so the note is on screen
+    await wait(300);
+    const fitted = await at();
+    await page.locator(`[data-el="${noteK.id}"]`).click({ position: { x: 3, y: 3 } });
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => document.activeElement?.isContentEditable);
+    await page.keyboard.down('ArrowLeft');
+    await wait(300);
+    await page.keyboard.up('ArrowLeft');
+    const d = await at();
+    await page.keyboard.press('Escape');
+    assert(d[0] === fitted[0] && d[1] === fitted[1], 'the view moved while typing in a note');
+  });
   await check('K18', 'Keyboard shortcuts panel lists every section', async () => {
     await page.keyboard.press('Escape');
     await page.keyboard.press('?');

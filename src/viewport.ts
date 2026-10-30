@@ -167,3 +167,48 @@ export function contains(r: Rect, p: { x: number; y: number }, pad = 0) {
 export function intersects(a: Rect, b: Rect) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
+
+// ---------------------------------------------------------------- arrow-key panning
+
+// Holding arrow keys glides the view (diagonally with two keys) instead of
+// jumping by the keyboard's repeat rate. Speed is in screen pixels so it feels
+// the same at every zoom; Shift goes faster.
+const PAN_SPEED = 900; // px per second
+const held = new Set<string>();
+let panFast = false;
+let panFrame = 0;
+let panLast = 0;
+
+function panStep(now: number) {
+  const dt = Math.min(0.05, (now - panLast) / 1000);
+  panLast = now;
+  const dx = (held.has('ArrowLeft') ? 1 : 0) - (held.has('ArrowRight') ? 1 : 0);
+  const dy = (held.has('ArrowUp') ? 1 : 0) - (held.has('ArrowDown') ? 1 : 0);
+  if (!dx && !dy) {
+    panFrame = 0;
+    return;
+  }
+  const len = Math.hypot(dx, dy);
+  const dist = PAN_SPEED * (panFast ? 2.5 : 1) * dt;
+  const vp = getViewport(currentBoard);
+  setViewport(currentBoard, { ...vp, x: vp.x + (dx / len) * dist, y: vp.y + (dy / len) * dist });
+  panFrame = requestAnimationFrame(panStep);
+}
+
+export function startKeyPan(key: string, fast: boolean) {
+  held.add(key);
+  panFast = fast;
+  if (!panFrame) {
+    panLast = performance.now();
+    panFrame = requestAnimationFrame(panStep);
+  }
+}
+
+export function stopKeyPan(key?: string) {
+  if (key) held.delete(key);
+  else held.clear();
+}
+
+export function isKeyPanning() {
+  return held.size > 0;
+}

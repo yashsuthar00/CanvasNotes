@@ -818,6 +818,7 @@ const SHORTCUT_SECTIONS: [string, [string, string][]][] = [
       ['Alt ← / Alt →', 'Go back / forward'],
       ['Ctrl + double-click a board', 'Open board in new tab'],
       ['Space + drag, middle-drag, or scroll', 'Move around the board'],
+      ['Arrow keys, nothing selected (Shift for faster)', 'Move around the board'],
       ['Ctrl Shift P', 'Presentation mode'],
     ],
   ],

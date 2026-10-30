@@ -145,6 +145,7 @@ Right-click anything for its menu. `?` lists every shortcut.
   Vimeo, Spotify, SoundCloud and Google Maps links become players and maps.
 
 **Organising.**
+- **Move around** with the arrow keys when nothing is selected (Shift goes faster); with cards selected they nudge the cards instead.
 - **Unsorted** (`U`) is a holding area for each board.
 - **Templates**: right-click a board → *Convert to Template*.
 - **Labels**: right-click → *Labels…*, then filter search by label.
@@ -159,7 +160,7 @@ Right-click anything for its menu. `?` lists every shortcut.
 ## Checking it
 
 `npm run test:parity` drives the real app in headless Chrome and checks every
-feature in `docs/feature-parity.md` (103 checks, about 4 minutes), including touch
+feature in `docs/feature-parity.md` (104 checks, about 4 minutes), including touch
 gestures in a phone-sized touch context. It signs up a fresh account first. Start
 a server with an empty `DATA_DIR` first, for example `DATA_DIR=/tmp/cn-test npm start`.
 

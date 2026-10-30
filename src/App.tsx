@@ -47,7 +47,7 @@ import {
 } from './actions';
 import { openDrawing } from './elements/Sketch';
 import { bufferPendingKey } from './elements/RichText';
-import { allRects, fitRects, getViewport, setViewport, zoomAt } from './viewport';
+import { allRects, fitRects, getViewport, setViewport, startKeyPan, stopKeyPan, zoomAt } from './viewport';
 import type { El } from './types';
 import { t } from './i18n';
 
@@ -99,8 +99,9 @@ function onKeyDown(e: KeyboardEvent) {
   const key = e.key.toLowerCase();
 
   if (state.modal) return; // modals handle their own keys
-  // A published board can be searched and zoomed, nothing else.
-  if (state.readOnly && !(e.ctrlKey || e.metaKey) && !['Escape', '?'].includes(e.key) && !(e.shiftKey && e.code === 'Digit1')) return;
+  // A published board can be searched, zoomed and panned, nothing else.
+  const pan = e.key.startsWith('Arrow') && !mod && !e.altKey;
+  if (state.readOnly && !(e.ctrlKey || e.metaKey) && !['Escape', '?'].includes(e.key) && !(e.shiftKey && e.code === 'Digit1') && !pan) return;
   if (mod && key === 'k' && !isTyping(e.target)) {
     e.preventDefault();
     setState({ panel: state.panel === 'search' ? null : 'search' });
@@ -232,7 +233,19 @@ function onKeyDown(e: KeyboardEvent) {
       if (el && !el.columnId && el.type !== 'line' && !el.locked) patches[id] = { x: el.x + dx, y: el.y + dy };
     }
     patchElements(patches, { coalesce: 'nudge' });
+  } else if (pan) {
+    // Nothing selected: the arrows move around the board.
+    e.preventDefault();
+    startKeyPan(e.key, e.shiftKey);
   }
+}
+
+function onKeyUp(e: KeyboardEvent) {
+  if (e.key.startsWith('Arrow')) stopKeyPan(e.key);
+}
+
+function onBlur() {
+  stopKeyPan(); // a key released in another window never sends keyup here
 }
 
 function onPaste(e: ClipboardEvent) {
@@ -280,21 +293,24 @@ export function App() {
   useEffect(() => {
     document.documentElement.style.setProperty('--ui-scale', localStorage.getItem('cn:ui-scale') || '1');
     const publicToken = location.pathname.match(/^\/p\/([\w-]+)/)?.[1];
-    if (publicToken) {
-      void loadPublic(publicToken);
-      return;
-    }
-    void load().then(() => {
-      if (getState().loaded && !getState().loadError) seedWelcomeBoard();
-      // Finish link previews that were interrupted by a reload.
-      for (const el of Object.values(getState().elements)) {
-        if (el.type === 'link' && el.content.loading && el.content.url) void fetchLinkPreview(el.id, el.content.url);
-      }
-    });
+    if (publicToken) void loadPublic(publicToken);
+    else
+      void load().then(() => {
+        if (getState().loaded && !getState().loadError) seedWelcomeBoard();
+        // Finish link previews that were interrupted by a reload.
+        for (const el of Object.values(getState().elements)) {
+          if (el.type === 'link' && el.content.loading && el.content.url) void fetchLinkPreview(el.id, el.content.url);
+        }
+      });
+    // A published board gets the keys too (onKeyDown lets it search, zoom and pan only).
     window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('blur', onBlur);
     window.addEventListener('paste', onPaste);
     return () => {
       window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('blur', onBlur);
       window.removeEventListener('paste', onPaste);
     };
   }, []);

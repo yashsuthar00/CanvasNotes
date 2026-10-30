@@ -17,8 +17,8 @@ client, captured with REA:
    reason.
 4. The rows are re-checked automatically by `tests/parity.e2e.js`
    (`npm run test:parity` against a server with an empty `DATA_DIR`). It drives
-   the real UI in headless Chrome and verifies what the server stored: 103
-   checks in sections A–K, last run 103/103 on 2026-10-25. Section J runs in a
+   the real UI in headless Chrome and verifies what the server stored: 104
+   checks in sections A–K, last run 104/104 on 2026-10-30. Section J runs in a
    touch-enabled phone context and sends real touch events (double-tap,
    tap-select, hold-drag, hold-menu, pinch, swipe-pan, toolbar tap). Section K
    covers the remaining rows, including the hosted sign-in, which the runner
@@ -138,6 +138,7 @@ single-user, self-hosted app
 | Milanote | Status | Notes | Checks |
 |---|---|---|---|
 | Breadcrumbs, go to parent, back/forward, drag cards onto a breadcrumb to move them up | ✅ | | A8, F2, K17 |
+| Move around the board with the arrow keys | ✅ | Beyond Milanote: glides while held, diagonals, Shift for faster; with cards selected the arrows nudge them | K22 |
 | Unsorted (`canvas.inbox`) | ✅ | Per-board panel, quick add, drag out to the board, `U` to send cards there | F3 |
 | Quick notes (from your phone) | ✅ | A Quick notes panel shared by every board, reachable from any device (no separate native app) | F4 |
 | Templates: choose, keep example content, your custom templates, convert / revert | ✅ | No public template gallery | F5, K8 |
