@@ -139,6 +139,7 @@ single-user, self-hosted app
 |---|---|---|---|
 | Breadcrumbs, go to parent, back/forward, drag cards onto a breadcrumb to move them up | ✅ | | A8, F2, K17 |
 | Move around the board with the arrow keys | ✅ | Beyond Milanote: glides while held, diagonals, Shift for faster; with cards selected the arrows nudge them | K22 |
+| Edge arrows to off-screen content, N / Shift N to jump between groups of cards | ✅ | Beyond Milanote: arrows only over empty space, merge by direction from afar, click/tap flies there | `npm run test:areas` A1–A7 |
 | Unsorted (`canvas.inbox`) | ✅ | Per-board panel, quick add, drag out to the board, `U` to send cards there | F3 |
 | Quick notes (from your phone) | ✅ | A Quick notes panel shared by every board, reachable from any device (no separate native app) | F4 |
 | Templates: choose, keep example content, your custom templates, convert / revert | ✅ | No public template gallery | F5, K8 |

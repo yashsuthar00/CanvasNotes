@@ -3273,3 +3273,65 @@ body {
   white-space: nowrap;
   max-width: 220px;
 }
+
+/* Edge arrows leading back to content from empty space (AreaPointers). */
+.area-pointers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 5;
+}
+.area-pointer {
+  position: absolute;
+  left: -20px;
+  top: -20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: var(--card-shadow-lift);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  will-change: transform;
+  animation: area-pointer-in 0.18s ease-out;
+}
+.area-pointer:hover {
+  background: var(--accent);
+  color: #fff;
+}
+.area-pointer:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.area-count {
+  position: absolute;
+  right: -5px;
+  top: -5px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+}
+@keyframes area-pointer-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .area-pointer {
+    animation: none;
+  }
+}

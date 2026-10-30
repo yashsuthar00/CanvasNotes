@@ -39,6 +39,7 @@ import { ItemFrame } from './ItemFrame';
 import { LinesLayer, type LineDraft } from './LinesLayer';
 import { ContextMenu, type MenuState } from './ContextMenu';
 import { SelectionBar } from './SelectionBar';
+import { AreaPointers } from './AreaPointers';
 import { ElementBody } from '../elements/ElementBody';
 import { t } from '../i18n';
 
@@ -779,6 +780,7 @@ export function Canvas() {
           {marquee && <div className="marquee" style={{ left: marquee.x, top: marquee.y, width: marquee.w, height: marquee.h }} />}
         </div>
         {loaded && topLevel.length === 0 && !locked && <EmptyBoardHint />}
+        {topLevel.length > 0 && !locked && <AreaPointers boardId={boardId} ids={topLevel} />}
         {locked && (
           <div className="lock-screen" onPointerDown={(e) => e.stopPropagation()}>
             <div className="lock-icon">🔒</div>

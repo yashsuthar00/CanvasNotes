@@ -20,6 +20,7 @@ import {
   useStore,
   subscribeState,
   loadPublic,
+  toast,
 } from './store';
 import { Canvas } from './components/Canvas';
 import { Toolbar } from './components/Toolbar';
@@ -47,6 +48,7 @@ import {
 } from './actions';
 import { openDrawing } from './elements/Sketch';
 import { bufferPendingKey } from './elements/RichText';
+import { jumpToArea } from './areas';
 import { allRects, fitRects, getViewport, setViewport, startKeyPan, stopKeyPan, zoomAt } from './viewport';
 import type { El } from './types';
 import { t } from './i18n';
@@ -101,7 +103,8 @@ function onKeyDown(e: KeyboardEvent) {
   if (state.modal) return; // modals handle their own keys
   // A published board can be searched, zoomed and panned, nothing else.
   const pan = e.key.startsWith('Arrow') && !mod && !e.altKey;
-  if (state.readOnly && !(e.ctrlKey || e.metaKey) && !['Escape', '?'].includes(e.key) && !(e.shiftKey && e.code === 'Digit1') && !pan) return;
+  const areaKey = e.key.toLowerCase() === 'n' && !mod && !e.altKey;
+  if (state.readOnly && !(e.ctrlKey || e.metaKey) && !['Escape', '?'].includes(e.key) && !(e.shiftKey && e.code === 'Digit1') && !pan && !areaKey) return;
   if (mod && key === 'k' && !isTyping(e.target)) {
     e.preventDefault();
     setState({ panel: state.panel === 'search' ? null : 'search' });
@@ -213,6 +216,9 @@ function onKeyDown(e: KeyboardEvent) {
     else startEditing(selection[0]);
   } else if (key === 'l' && !mod) {
     setState({ tool: state.tool === 'line' ? null : 'line' });
+  } else if (key === 'n' && !mod && !e.altKey) {
+    const at = jumpToArea(e.shiftKey ? -1 : 1);
+    if (at && at.total > 1) toast(t('Area {i} of {n}', { i: at.index + 1, n: at.total }));
   } else if (key === 'u' && !mod && selection.length) {
     moveToInbox(selection);
   } else if (key === 'd' && !mod) {

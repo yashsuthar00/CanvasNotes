@@ -15,7 +15,8 @@
     "test:parity": "node tests/run-parity.mjs",
     "test:accounts": "node tests/run-accounts.mjs",
     "test:security": "node tests/run-security.mjs",
-    "test:responsive": "node tests/run-responsive.mjs"
+    "test:responsive": "node tests/run-responsive.mjs",
+    "test:areas": "node tests/run-areas.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",

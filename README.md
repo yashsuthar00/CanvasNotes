@@ -146,6 +146,7 @@ Right-click anything for its menu. `?` lists every shortcut.
 
 **Organising.**
 - **Move around** with the arrow keys when nothing is selected (Shift goes faster); with cards selected they nudge the cards instead.
+- **Lost in empty space?** Arrows on the board's edges point to every group of cards off screen; click or tap one to fly there. Groups that lie in nearly the same direction share an arrow (with a count) until you get closer. **N** jumps to the next group of cards, **Shift N** to the previous one.
 - **Unsorted** (`U`) is a holding area for each board.
 - **Templates**: right-click a board → *Convert to Template*.
 - **Labels**: right-click → *Labels…*, then filter search by label.
@@ -178,7 +179,12 @@ at 16 phone, tablet and desktop sizes: nothing scrolls sideways or is cut off,
 dialogs can be scrolled to their last button, touch targets are at least 40px
 (7 checks, about a minute).
 
-These three start their own servers (ports 5192–5211), so nothing needs to be
+`npm run test:areas` checks the edge arrows that lead back to content and the
+N / Shift N jumps: arrows hide on content, merge from far away and split up
+close, fly to their cards on click or tap (also at phone size), and panning
+stays at 60 frames a second (7 checks, about 15 seconds).
+
+These four start their own servers (ports 5192–5213), so nothing needs to be
 running. With `EVIDENCE_DIR=<folder>` they also keep screenshots and a JSON
 report there.
 

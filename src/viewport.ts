@@ -197,6 +197,7 @@ function panStep(now: number) {
 
 export function startKeyPan(key: string, fast: boolean) {
   held.add(key);
+  flight = 0; // steering by hand ends a fly-to
   panFast = fast;
   if (!panFrame) {
     panLast = performance.now();
@@ -211,4 +212,44 @@ export function stopKeyPan(key?: string) {
 
 export function isKeyPanning() {
   return held.size > 0;
+}
+
+// ---------------------------------------------------------------- fly to
+
+// Glides the view to a new pan/zoom. Stops early if anything else moves the
+// view meanwhile (a drag, the wheel, the arrow keys), so the user always wins.
+let flight = 0;
+
+export function flyTo(boardId: string, to: Viewport, ms = 320) {
+  const from = getViewport(boardId);
+  if (ms <= 0 || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    flight = 0;
+    return setViewport(boardId, to);
+  }
+  const id = ++flight;
+  const t0 = performance.now();
+  let last = from;
+  const step = (now: number) => {
+    if (id !== flight || getViewport(boardId) !== last) return;
+    const k = Math.min(1, (now - t0) / ms);
+    const e = 1 - (1 - k) ** 3;
+    // Zoom moves in log space so zooming in and out feel equally fast.
+    const zoom = from.zoom * (to.zoom / from.zoom) ** e;
+    setViewport(boardId, { x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e, zoom });
+    last = getViewport(boardId);
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+// The view that shows a world rect in the middle of the board: the current zoom
+// (at least 100% when zoomed far out, so cards are readable on arrival), or
+// zoomed out just enough to fit it.
+export function viewFor(boardId: string, rect: Rect, pad = 60): Viewport {
+  const r = canvasRect();
+  const w = r?.width ?? 800;
+  const h = r?.height ?? 600;
+  const current = getViewport(boardId).zoom;
+  const zoom = Math.max(MIN_ZOOM, Math.min(Math.max(current, 1), (w - pad * 2) / rect.w, (h - pad * 2) / rect.h));
+  return { zoom, x: w / 2 - (rect.x + rect.w / 2) * zoom, y: h / 2 - (rect.y + rect.h / 2) * zoom };
 }
