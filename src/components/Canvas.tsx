@@ -8,6 +8,7 @@ import {
   makeElement,
   maxZ,
   navigate,
+  setHand,
   setState,
   startEditing,
   useStore,
@@ -103,6 +104,7 @@ function elementAt(point: { x: number; y: number }, exclude: Set<string> = new S
 export function Canvas() {
   const boardId = useStore((s) => s.boardId);
   const tool = useStore((s) => s.tool);
+  const hand = useStore((s) => s.hand);
   const loaded = useStore((s) => s.loaded);
   const focusRequest = useStore((s) => s.focusRequest);
   const ids = useStore(topLevelKey);
@@ -260,6 +262,8 @@ export function Canvas() {
   const onBackgroundPointerDown = (e: RPointerEvent) => {
     setMenu(null);
     if (e.button === 2) return;
+    // Move mode: cards don't take pointer events (CSS), so every drag lands here and pans.
+    if (getState().hand) return startPan(e);
     if (e.pointerType === 'touch' && !tool) return startTouchBackground(e);
     if (e.button === 1 || spaceDown.current) return startPan(e);
     if (e.button !== 0) return;
@@ -674,7 +678,7 @@ export function Canvas() {
   };
 
   const onDoubleClick = (e: React.MouseEvent) => {
-    if (lastPointerType.current === 'touch') return;
+    if (lastPointerType.current === 'touch' || getState().hand) return;
     if (e.target !== canvasRef.current && e.target !== worldRef.current) return;
     const p = screenToWorld(e.clientX, e.clientY);
     const note = makeElement('note', { x: Math.round(p.x - 20), y: Math.round(p.y - 20) });
@@ -706,7 +710,7 @@ export function Canvas() {
 
   const onBackgroundContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (lastPointerType.current === 'touch') return;
+    if (lastPointerType.current === 'touch' || getState().hand) return;
     setState({ selection: [], editingId: null });
     setMenu({ x: e.clientX, y: e.clientY, targetIds: [], world: screenToWorld(e.clientX, e.clientY) });
   };
@@ -722,7 +726,7 @@ export function Canvas() {
 
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    if (getState().readOnly) return;
+    if (getState().readOnly || getState().hand) return;
     const p = screenToWorld(e.clientX, e.clientY);
     const column = computeDropTarget(p, ['__external__']);
     const at = { x: p.x, y: p.y, ...(column?.kind === 'column' ? { columnId: column.id, index: column.index } : {}) };
@@ -745,7 +749,7 @@ export function Canvas() {
     <CanvasContext.Provider value={api}>
       <div
         ref={canvasRef}
-        className={`canvas ${panning ? 'panning' : ''} ${tool === 'line' ? 'tool-line' : ''} ${darkBackground ? 'dark-bg' : background ? 'light-bg' : ''}`}
+        className={`canvas ${panning ? 'panning' : ''} ${hand ? 'hand' : ''} ${tool === 'line' ? 'tool-line' : ''} ${darkBackground ? 'dark-bg' : background ? 'light-bg' : ''}`}
         style={{
           backgroundSize: `${grid}px ${grid}px`,
           backgroundPosition: `${vp.x}px ${vp.y}px`,
@@ -781,6 +785,7 @@ export function Canvas() {
         </div>
         {loaded && topLevel.length === 0 && !locked && <EmptyBoardHint />}
         {topLevel.length > 0 && !locked && <AreaPointers boardId={boardId} ids={topLevel} />}
+        {!locked && <ModeSwitch hand={hand} />}
         {locked && (
           <div className="lock-screen" onPointerDown={(e) => e.stopPropagation()}>
             <div className="lock-icon">🔒</div>
@@ -816,6 +821,24 @@ export function lineBox(el: El | undefined): Rect | null {
 function endPoint(end: LineEnd) {
   const r = end.id ? getRect(end.id) : undefined;
   return r ? { x: r.x + r.w / 2, y: r.y + r.h / 2 } : { x: end.x, y: end.y };
+}
+
+// Select (the cursor: click, edit and drag cards) or Move (the hand: drag anywhere to move around, nothing changes).
+function ModeSwitch({ hand }: { hand: boolean }) {
+  return (
+    <div className="mode-switch" role="radiogroup" aria-label={t('Pointer mode')} onPointerDown={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
+      <button role="radio" aria-checked={!hand} className={hand ? '' : 'on'} onClick={() => setHand(false)} title={t('Select and edit (V)')} aria-label={t('Select and edit (V)')}>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+          <path d="M6 3.5l12 7.2-5.3 1.2 3.2 6.1-2.4 1.3-3.2-6.2L6 17z" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinejoin="round" />
+        </svg>
+      </button>
+      <button role="radio" aria-checked={hand} className={hand ? 'on' : ''} onClick={() => setHand(true)} title={t('Move around only (H)')} aria-label={t('Move around only (H)')}>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11.5v-8a1.5 1.5 0 0 1 3 0V12M14 5.5a1.5 1.5 0 0 1 3 0V12M17 8.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.8-2.4L4.3 14.2a1.6 1.6 0 0 1 2.5-2L8 13.5" />
+        </svg>
+      </button>
+    </div>
+  );
 }
 
 function EmptyBoardHint() {

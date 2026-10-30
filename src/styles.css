@@ -3335,3 +3335,58 @@ body {
     animation: none;
   }
 }
+
+/* Select / Move switch (bottom left of the board). In Move mode cards ignore
+   the pointer, so every press lands on the board and drags the view. */
+.canvas.hand {
+  cursor: grab;
+}
+.canvas.hand .world,
+.canvas.hand .world * {
+  pointer-events: none !important;
+}
+.mode-switch {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 6;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: var(--card-shadow-lift);
+  cursor: default;
+}
+.mode-switch button {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-2);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.mode-switch button:hover {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.mode-switch button.on {
+  background: var(--accent);
+  color: #fff;
+}
+.mode-switch button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+@media (pointer: coarse) {
+  .mode-switch button {
+    width: 42px;
+    height: 42px;
+  }
+}

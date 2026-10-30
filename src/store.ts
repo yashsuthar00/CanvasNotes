@@ -28,6 +28,8 @@ export interface State {
   editingId: string | null;
   saveStatus: SaveStatus;
   tool: 'line' | null;
+  // Move mode (the hand): dragging anywhere only moves the view; cards can't be changed.
+  hand: boolean;
   panel: Panel;
   theme: Theme;
   canUndo: boolean;
@@ -63,6 +65,14 @@ function readTheme(): Theme {
   return 'system';
 }
 
+function readHand(): boolean {
+  try {
+    return localStorage.getItem('cn:hand') === '1';
+  } catch {
+    return false;
+  }
+}
+
 function boardFromHash(): string {
   const m = location.hash.match(/^#\/b\/([\w-]+)/);
   return m ? m[1] : ROOT_ID;
@@ -77,6 +87,7 @@ let state: State = {
   editingId: null,
   saveStatus: 'saved',
   tool: null,
+  hand: readHand(),
   panel: null,
   theme: readTheme(),
   canUndo: false,
@@ -520,6 +531,14 @@ export function setTheme(theme: Theme) {
     localStorage.setItem('cn:theme', theme);
   } catch {}
   setState({ theme });
+}
+
+export function setHand(hand: boolean) {
+  try {
+    localStorage.setItem('cn:hand', hand ? '1' : '0');
+  } catch {}
+  if ((document.activeElement as HTMLElement | null)?.isContentEditable) (document.activeElement as HTMLElement).blur();
+  setState(hand ? { hand, selection: [], editingId: null, tool: null, captionEditId: null } : { hand });
 }
 
 export function toast(text: string) {

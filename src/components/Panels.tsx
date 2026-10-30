@@ -820,6 +820,7 @@ const SHORTCUT_SECTIONS: [string, [string, string][]][] = [
       ['Space + drag, middle-drag, or scroll', 'Move around the board'],
       ['Arrow keys, nothing selected (Shift for faster)', 'Move around the board'],
       ['N / Shift N', 'Jump to the next / previous group of cards'],
+      ['V / H', 'Select mode / Move mode (drag anywhere to look around; nothing changes)'],
       ['Ctrl Shift P', 'Presentation mode'],
     ],
   ],

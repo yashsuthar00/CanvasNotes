@@ -13,6 +13,7 @@ import {
   patchElements,
   redo,
   setState,
+  setHand,
   setTheme,
   startEditing,
   trashElements,
@@ -101,10 +102,12 @@ function onKeyDown(e: KeyboardEvent) {
   const key = e.key.toLowerCase();
 
   if (state.modal) return; // modals handle their own keys
-  // A published board can be searched, zoomed and panned, nothing else.
   const pan = e.key.startsWith('Arrow') && !mod && !e.altKey;
   const areaKey = e.key.toLowerCase() === 'n' && !mod && !e.altKey;
-  if (state.readOnly && !(e.ctrlKey || e.metaKey) && !['Escape', '?'].includes(e.key) && !(e.shiftKey && e.code === 'Digit1') && !pan && !areaKey) return;
+  // Move mode changes nothing: only looking around (and leaving it) gets through.
+  if (state.hand && !isTyping(e.target) && !handAllows(e, mod, pan || areaKey)) return;
+  // A published board can be searched, zoomed and panned, nothing else.
+  if (state.readOnly && !(e.ctrlKey || e.metaKey) && !['Escape', '?'].includes(e.key) && !(e.shiftKey && e.code === 'Digit1') && !pan && !areaKey && !['h', 'v'].includes(key)) return;
   if (mod && key === 'k' && !isTyping(e.target)) {
     e.preventDefault();
     setState({ panel: state.panel === 'search' ? null : 'search' });
@@ -216,6 +219,8 @@ function onKeyDown(e: KeyboardEvent) {
     else startEditing(selection[0]);
   } else if (key === 'l' && !mod) {
     setState({ tool: state.tool === 'line' ? null : 'line' });
+  } else if ((key === 'h' || key === 'v') && !mod && !e.altKey && !e.shiftKey) {
+    setHand(key === 'h');
   } else if (key === 'n' && !mod && !e.altKey) {
     const at = jumpToArea(e.shiftKey ? -1 : 1);
     if (at && at.total > 1) toast(t('Area {i} of {n}', { i: at.index + 1, n: at.total }));
@@ -246,6 +251,15 @@ function onKeyDown(e: KeyboardEvent) {
   }
 }
 
+function handAllows(e: KeyboardEvent, mod: boolean, look: boolean) {
+  const key = e.key.toLowerCase();
+  if (look || ['escape', '?', 'h', 'v'].includes(key) || (e.shiftKey && e.code === 'Digit1')) return true;
+  if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) return true; // back / forward
+  if (e.key === 'Backspace' && !getState().selection.length) return true; // up to the parent board
+  if (mod && e.shiftKey) return ['p', 'd', '+', '=', '-', '_'].includes(key); // present, theme, interface size
+  return mod && ['=', '+', '-', '0', 'k', 'e'].includes(key);
+}
+
 function onKeyUp(e: KeyboardEvent) {
   if (e.key.startsWith('Arrow')) stopKeyPan(e.key);
 }
@@ -256,7 +270,7 @@ function onBlur() {
 
 function onPaste(e: ClipboardEvent) {
   const state = getState();
-  if (isTyping(e.target) || state.panel || state.modal || state.readOnly) return;
+  if (isTyping(e.target) || state.panel || state.modal || state.readOnly || state.hand) return;
   const data = e.clipboardData;
   if (!data) return;
   const at = pastePlacement();

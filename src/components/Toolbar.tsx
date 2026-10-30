@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent as RPointerEvent, type ReactNode } from 'react';
 import { createElement, columnAt, centerPlacement, pickFiles, addFiles } from '../actions';
-import { getState, setState, useStore } from '../store';
+import { getState, setHand, setState, useStore } from '../store';
 import type { ElementType } from '../types';
 import { isOverCanvas, screenToWorld } from '../viewport';
 import { getToolbarPrefs, onToolbarPrefs, type ToolId, TOOL_LABELS } from './toolbarPrefs';
@@ -132,7 +132,11 @@ export function Toolbar() {
             key={tool.id}
             className={`tool ${activeTool === tool.type ? 'active' : ''}`}
             title={t('{hint} — click or drag onto the board', { hint: t(tool.hint) })}
-            onPointerDown={(e) => onPointerDown(e, tool)}
+            onPointerDown={(e) => {
+              // Adding a card means editing again: leave Move mode.
+              if (getState().hand) setHand(false);
+              onPointerDown(e, tool);
+            }}
             onClick={() => onClick(tool)}
           >
             {tool.icon}

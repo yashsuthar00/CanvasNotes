@@ -8,7 +8,7 @@ const suite = await createSuite('areas');
 const S = await suite.startServer('main', 5213);
 const p = await suite.newPage();
 await suite.signup(p, S.base, `a-${rand()}@example.com`, 'owner-password');
-const note = (id, x, y, text) => ({ op: 'put', el: { id, type: 'note', parentId: 'areas', section: 'canvas', x, y, z: 1, width: 220, columnId: null, createdAt: 1, updatedAt: 1, content: { html: `<p>${text}</p>` } } });
+const note = (id, x, y, text) => ({ op: 'put', el: { id, type: 'note', parentId: 'areas', section: 'canvas', x, y, z: 1, w: 220, columnId: null, createdAt: 1, updatedAt: 1, content: { html: `<p>${text}</p>` } } });
 const board = { op: 'put', el: { id: 'areas', type: 'board', parentId: 'root', section: 'canvas', x: 100, y: 100, z: 1, width: 120, columnId: null, createdAt: 1, updatedAt: 1, content: { title: 'Areas' } } };
 await p.request.post(`${S.base}/api/ops`, { data: { ops: [board, note('nA', 0, 0, 'Area A'), note('nA2', 260, 40, 'Area A two'), note('nB', 4000, 0, 'Area B'), note('nC', 4000, 1200, 'Area C'), note('nD', 0, 4000, 'Area D')] } });
 await p.goto(`${S.base}/#/b/areas`);

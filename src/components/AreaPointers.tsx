@@ -8,6 +8,7 @@ import { intersects, useRectsVersion, useViewport } from '../viewport';
 import { t } from '../i18n';
 
 const INSET = 30; // px from the board's edge to the arrow's centre
+const BOTTOM = 84; // more at the bottom, so arrows pass above the Select / Move switch
 const MERGE = 60; // arrows closer than this become one
 
 type Pointer = { key: string; x: number; y: number; angle: number; areas: Area[]; cards: number };
@@ -69,12 +70,13 @@ function screenCentre(a: Area[], vp: { x: number; y: number; zoom: number }) {
   return { x: (x / n) * vp.zoom + vp.x, y: (y / n) * vp.zoom + vp.y };
 }
 
-// Where the line from the board's centre towards a point meets the inset edge.
+// Where the line from the middle of the arrows' frame towards a point meets that frame.
 function edgePoint(target: { x: number; y: number }, w: number, h: number) {
+  const cy = (INSET + h - BOTTOM) / 2;
   const dx = target.x - w / 2;
-  const dy = target.y - h / 2;
-  const s = Math.min((w / 2 - INSET) / Math.abs(dx || 1e-9), (h / 2 - INSET) / Math.abs(dy || 1e-9));
-  return { x: w / 2 + dx * s, y: h / 2 + dy * s, angle: Math.atan2(dy, dx) };
+  const dy = target.y - cy;
+  const s = Math.min((w / 2 - INSET) / Math.abs(dx || 1e-9), (cy - INSET) / Math.abs(dy || 1e-9));
+  return { x: w / 2 + dx * s, y: cy + dy * s, angle: Math.atan2(dy, dx) };
 }
 
 function place(areas: Area[], vp: { x: number; y: number; zoom: number }, w: number, h: number): Pointer[] {
