@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How Canvas Notes works</title>
+<!-- Source of docs/how-it-works.pdf. Rebuild the PDF with:
+     google-chrome-stable --headless --no-pdf-header-footer --print-to-pdf=docs/how-it-works.pdf docs/how-it-works.html -->
+<style>
+  @page { size: A4; margin: 16mm 15mm; }
+  * { box-sizing: border-box; }
+  body { font: 10.5pt/1.5 "Inter", "Segoe UI", system-ui, sans-serif; color: #1d2433; margin: 0; }
+  h1 { font-size: 22pt; margin: 0 0 2px; letter-spacing: -0.02em; }
+  .sub { color: #5b6475; margin: 0 0 18px; }
+  h2 { font-size: 14pt; margin: 22px 0 6px; padding-top: 6px; border-top: 2px solid #e6e9ef; }
+  h2 .n { display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #3a7bd5; color: #fff; font-size: 11pt; text-align: center; line-height: 22px; margin-right: 8px; }
+  p { margin: 4px 0 8px; }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+  svg { width: 100%; height: auto; display: block; margin: 8px 0 6px; }
+  svg text { font-family: "Inter", "Segoe UI", system-ui, sans-serif; }
+  .box { fill: #fff; stroke: #c9d1de; stroke-width: 1.4; }
+  .blue { fill: #eaf2fd; stroke: #3a7bd5; }
+  .green { fill: #e9f7ef; stroke: #2e9e5b; }
+  .amber { fill: #fff5e0; stroke: #d99a1e; }
+  .grey { fill: #f3f5f8; stroke: #c9d1de; }
+  .red { fill: #fdecec; stroke: #d64545; }
+  .t { font-size: 13px; font-weight: 600; fill: #1d2433; }
+  .s { font-size: 11px; fill: #5b6475; }
+  .m { font-size: 10.5px; fill: #1d2433; font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace; }
+  .a { stroke: #5b6475; stroke-width: 1.6; fill: none; marker-end: url(#arr); }
+  .ab { stroke: #3a7bd5; stroke-width: 1.8; fill: none; marker-end: url(#arrb); }
+  .dash { stroke-dasharray: 5 4; }
+  .lbl { font-size: 10.5px; fill: #3a4458; }
+  .note { background: #f3f5f8; border-left: 3px solid #3a7bd5; padding: 7px 10px; margin: 8px 0; border-radius: 0 6px 6px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 9.5pt; margin: 6px 0; }
+  th, td { text-align: left; padding: 4px 7px; border-bottom: 1px solid #e6e9ef; vertical-align: top; }
+  th { background: #f3f5f8; }
+  code { font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace; font-size: 9pt; background: #f3f5f8; padding: 0 3px; border-radius: 3px; }
+  ul { margin: 4px 0 8px; padding-left: 18px; }
+  li { margin: 2px 0; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5b6475"/></marker>
+    <marker id="arrb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#3a7bd5"/></marker>
+  </defs>
+</svg>
+
+<!-- ================================================================ page 1 -->
+<div class="page">
+<h1>How Canvas Notes works</h1>
+<p class="sub">What runs where, how a change gets saved, and how your data is stored · 1 November 2026</p>
+
+<h2><span class="n">1</span>The big picture</h2>
+<p>Canvas Notes is <b>one small program</b>. The browser shows the boards, and a Node server saves everything into <b>one database file</b> plus a <b>folder of uploaded files</b>. No other services are needed.</p>
+
+<svg viewBox="0 0 720 300">
+  <!-- browser -->
+  <rect x="10" y="20" width="190" height="260" rx="10" class="box blue"/>
+  <text x="105" y="44" text-anchor="middle" class="t">Your browser</text>
+  <text x="105" y="60" text-anchor="middle" class="s">laptop, phone or iPad</text>
+  <rect x="26" y="76" width="158" height="52" rx="7" class="box"/>
+  <text x="105" y="98" text-anchor="middle" class="t">The app (React)</text>
+  <text x="105" y="115" text-anchor="middle" class="s">boards, cards, tools</text>
+  <rect x="26" y="140" width="158" height="52" rx="7" class="box"/>
+  <text x="105" y="162" text-anchor="middle" class="t">In-memory copy</text>
+  <text x="105" y="179" text-anchor="middle" class="s">all your cards, instant</text>
+  <rect x="26" y="204" width="158" height="58" rx="7" class="box"/>
+  <text x="105" y="226" text-anchor="middle" class="t">Save queue</text>
+  <text x="105" y="243" text-anchor="middle" class="s">sends changes after</text>
+  <text x="105" y="256" text-anchor="middle" class="s">0.5 s of quiet</text>
+
+  <!-- arrows -->
+  <path d="M200 110 H300" class="ab"/>
+  <text x="250" y="102" text-anchor="middle" class="lbl">load everything</text>
+  <path d="M300 150 H200" class="a"/>
+  <text x="250" y="142" text-anchor="middle" class="lbl">cards + files</text>
+  <path d="M200 232 H300" class="ab"/>
+  <text x="250" y="224" text-anchor="middle" class="lbl">changes (ops)</text>
+
+  <!-- server -->
+  <rect x="300" y="20" width="200" height="260" rx="10" class="box green"/>
+  <text x="400" y="44" text-anchor="middle" class="t">Node server</text>
+  <text x="400" y="60" text-anchor="middle" class="s">server/index.mjs · Node 24</text>
+  <rect x="316" y="76" width="168" height="40" rx="7" class="box"/>
+  <text x="400" y="101" text-anchor="middle" class="s">Sign-in &amp; sessions</text>
+  <rect x="316" y="124" width="168" height="40" rx="7" class="box"/>
+  <text x="400" y="149" text-anchor="middle" class="s">Security checks &amp; limits</text>
+  <rect x="316" y="172" width="168" height="40" rx="7" class="box"/>
+  <text x="400" y="197" text-anchor="middle" class="s">Save cards · store uploads</text>
+  <rect x="316" y="220" width="168" height="40" rx="7" class="box"/>
+  <text x="400" y="245" text-anchor="middle" class="s">Clean-up of unused files</text>
+
+  <!-- storage -->
+  <path d="M500 110 H560" class="a"/>
+  <path d="M500 220 H560" class="a"/>
+  <rect x="560" y="50" width="150" height="100" rx="10" class="box amber"/>
+  <text x="635" y="80" text-anchor="middle" class="t">canvasnotes.db</text>
+  <text x="635" y="98" text-anchor="middle" class="s">SQLite, one file</text>
+  <text x="635" y="114" text-anchor="middle" class="s">accounts, boards, cards</text>
+  <text x="635" y="132" text-anchor="middle" class="s">≈ 20 MB today</text>
+  <rect x="560" y="170" width="150" height="100" rx="10" class="box amber"/>
+  <text x="635" y="200" text-anchor="middle" class="t">files/</text>
+  <text x="635" y="218" text-anchor="middle" class="s">images, videos, PDFs</text>
+  <text x="635" y="234" text-anchor="middle" class="s">one file per upload</text>
+  <text x="635" y="252" text-anchor="middle" class="s">≈ 2.9 GB today</text>
+</svg>
+
+<div class="note">Everything lives in one <b>data folder</b> (<code>DATA_DIR</code>, by default <code>canvasnotes/data</code>). Copying that folder copies every account, board, card and file.</div>
+
+<h2><span class="n">2</span>What happens when you change a card</h2>
+<svg viewBox="0 0 720 150">
+  <rect x="5" y="30" width="120" height="70" rx="8" class="box blue"/>
+  <text x="65" y="58" text-anchor="middle" class="t">You type</text>
+  <text x="65" y="76" text-anchor="middle" class="s">or move a card</text>
+  <path d="M125 65 H150" class="ab"/>
+  <rect x="150" y="30" width="125" height="70" rx="8" class="box blue"/>
+  <text x="212" y="58" text-anchor="middle" class="t">Shown at once</text>
+  <text x="212" y="76" text-anchor="middle" class="s">"Saving…" appears</text>
+  <path d="M275 65 H300" class="ab"/>
+  <rect x="300" y="30" width="125" height="70" rx="8" class="box blue"/>
+  <text x="362" y="58" text-anchor="middle" class="t">0.5 s pause</text>
+  <text x="362" y="76" text-anchor="middle" class="s">changes are batched</text>
+  <path d="M425 65 H450" class="ab"/>
+  <rect x="450" y="30" width="125" height="70" rx="8" class="box green"/>
+  <text x="512" y="52" text-anchor="middle" class="t">POST /api/ops</text>
+  <text x="512" y="70" text-anchor="middle" class="s">signed in? same site?</text>
+  <text x="512" y="86" text-anchor="middle" class="s">within size limits?</text>
+  <path d="M575 65 H600" class="a"/>
+  <rect x="600" y="30" width="115" height="70" rx="8" class="box amber"/>
+  <text x="657" y="58" text-anchor="middle" class="t">Written to DB</text>
+  <text x="657" y="76" text-anchor="middle" class="s">"Saved" appears</text>
+  <path d="M512 100 V125 H362 V100" class="a dash"/>
+  <text x="437" y="140" text-anchor="middle" class="lbl">no network? it keeps the changes and retries every 3 s</text>
+</svg>
+<p>If you close the tab mid-save, the last changes are still sent on the way out.</p>
+</div>
+
+<!-- ================================================================ page 2 -->
+<div class="page">
+<h2><span class="n">3</span>How the data is stored</h2>
+<p>The database file has five tables. Every row carries a <b>user_id</b>, and the server adds "only this user" to every read and write, so one account can never see or change another's data.</p>
+
+<svg viewBox="0 0 720 330">
+  <!-- users -->
+  <rect x="10" y="10" width="200" height="130" rx="8" class="box green"/>
+  <text x="22" y="32" class="t">users</text>
+  <text x="22" y="52" class="m">id</text><text x="110" y="52" class="s">random id</text>
+  <text x="22" y="70" class="m">email</text><text x="110" y="70" class="s">unique</text>
+  <text x="22" y="88" class="m">name</text>
+  <text x="22" y="106" class="m">salt, hash</text><text x="110" y="106" class="s">scrypt of password</text>
+  <text x="22" y="124" class="m">created_at</text>
+
+  <!-- sessions -->
+  <rect x="10" y="170" width="200" height="110" rx="8" class="box green"/>
+  <text x="22" y="192" class="t">sessions</text>
+  <text x="22" y="212" class="m">token_hash</text><text x="110" y="212" class="s">SHA-256 of cookie</text>
+  <text x="22" y="230" class="m">user_id</text>
+  <text x="22" y="248" class="m">expires_at</text><text x="110" y="248" class="s">1 year</text>
+  <text x="22" y="268" class="s">the browser only holds the cookie</text>
+
+  <!-- elements -->
+  <rect x="260" y="10" width="220" height="150" rx="8" class="box amber"/>
+  <text x="272" y="32" class="t">elements</text><text x="350" y="32" class="s">every card &amp; board</text>
+  <text x="272" y="52" class="m">user_id + id</text><text x="372" y="52" class="s">the key</text>
+  <text x="272" y="70" class="m">data</text><text x="372" y="70" class="s">the card as JSON</text>
+  <text x="272" y="88" class="m">updated_at</text>
+  <text x="272" y="106" class="m">public_token</text><text x="372" y="106" class="s">set if published</text>
+  <text x="272" y="130" class="s">28,704 rows today</text>
+  <text x="272" y="146" class="s">limit: 200 MB of cards per account</text>
+
+  <!-- board_locks -->
+  <rect x="260" y="190" width="220" height="90" rx="8" class="box grey"/>
+  <text x="272" y="212" class="t">board_locks</text>
+  <text x="272" y="232" class="m">user_id + board_id</text>
+  <text x="272" y="250" class="m">salt, hash</text><text x="372" y="250" class="s">board password</text>
+  <text x="272" y="268" class="s">only boards with a password</text>
+
+  <!-- uploads -->
+  <rect x="530" y="10" width="180" height="150" rx="8" class="box amber"/>
+  <text x="542" y="32" class="t">uploads</text><text x="606" y="32" class="s">file owners</text>
+  <text x="542" y="52" class="m">user_id + name</text>
+  <text x="542" y="70" class="m">size</text><text x="610" y="70" class="s">counts to quota</text>
+  <text x="542" y="88" class="m">created_at</text>
+  <text x="542" y="106" class="m">orphaned_at</text><text x="630" y="106" class="s">unused since</text>
+  <text x="542" y="130" class="s">22,245 rows · 2.9 GB</text>
+  <text x="542" y="146" class="s">quota: your .env (20 GB)</text>
+
+  <!-- files folder -->
+  <rect x="530" y="190" width="180" height="90" rx="8" class="box amber"/>
+  <text x="542" y="212" class="t">files/ folder</text>
+  <text x="542" y="232" class="m">3f9a…c1.jpg</text>
+  <text x="542" y="250" class="m">b07e…92.mp4</text>
+  <text x="542" y="268" class="s">named by content hash</text>
+
+  <!-- relations -->
+  <path d="M210 75 H260" class="a"/>
+  <path d="M110 140 V170" class="a"/>
+  <path d="M480 75 H530" class="a"/>
+  <text x="505" y="66" text-anchor="middle" class="lbl">uses</text>
+  <path d="M620 160 V190" class="a"/>
+  <path d="M370 160 V190" class="a dash"/>
+  <text x="235" y="66" text-anchor="middle" class="lbl">owns</text>
+  <text x="710" y="300" text-anchor="end" class="lbl">same file uploaded twice = stored once</text>
+</svg>
+
+<h3 style="font-size:11.5pt;margin:10px 0 4px">One card, as stored in <code>elements.data</code></h3>
+<svg viewBox="0 0 720 150">
+  <rect x="10" y="5" width="420" height="140" rx="8" class="box grey"/>
+  <text x="24" y="28" class="m">{ "id": "k3x9…", "type": "image",</text>
+  <text x="24" y="46" class="m">  "parentId": "board-7f…",   ← which board it's on</text>
+  <text x="24" y="64" class="m">  "x": 420, "y": 180, "w": 300, "z": 12,</text>
+  <text x="24" y="82" class="m">  "columnId": null, "section": "canvas",</text>
+  <text x="24" y="100" class="m">  "content": { "url": "/files/3f9a…c1.jpg",</text>
+  <text x="24" y="118" class="m">               "caption": "Moodboard" },</text>
+  <text x="24" y="136" class="m">  "updatedAt": 1761980000000 }</text>
+  <path d="M430 95 H500" class="a"/>
+  <rect x="500" y="40" width="210" height="100" rx="8" class="box amber"/>
+  <text x="512" y="64" class="t">The picture itself</text>
+  <text x="512" y="84" class="s">is not in the database. The card</text>
+  <text x="512" y="100" class="s">only points to it; the bytes sit</text>
+  <text x="512" y="116" class="s">in files/3f9a…c1.jpg</text>
+</svg>
+<p>Boards are cards too (<code>type: "board"</code>). A card's <code>parentId</code> says which board it sits on, so boards inside boards are just a chain of parents up to <b>Home</b>.</p>
+</div>
+
+<!-- ================================================================ page 3 -->
+<div class="page">
+<h2><span class="n">4</span>Uploading a file</h2>
+<svg viewBox="0 0 720 165">
+  <rect x="5" y="30" width="120" height="70" rx="8" class="box blue"/>
+  <text x="65" y="58" text-anchor="middle" class="t">Drop a photo</text>
+  <text x="65" y="76" text-anchor="middle" class="s">or paste / pick</text>
+  <path d="M125 65 H150" class="ab"/>
+  <rect x="150" y="30" width="130" height="70" rx="8" class="box green"/>
+  <text x="215" y="52" text-anchor="middle" class="t">Room left?</text>
+  <text x="215" y="70" text-anchor="middle" class="s">used + new ≤ quota</text>
+  <text x="215" y="86" text-anchor="middle" class="s">else "storage is full"</text>
+  <path d="M280 65 H305" class="a"/>
+  <rect x="305" y="30" width="130" height="70" rx="8" class="box green"/>
+  <text x="370" y="52" text-anchor="middle" class="t">Name by hash</text>
+  <text x="370" y="70" text-anchor="middle" class="s">SHA-256 of the bytes</text>
+  <text x="370" y="86" text-anchor="middle" class="s">3f9a…c1.jpg</text>
+  <path d="M435 65 H460" class="a"/>
+  <rect x="460" y="30" width="125" height="70" rx="8" class="box amber"/>
+  <text x="522" y="52" text-anchor="middle" class="t">Save once</text>
+  <text x="522" y="70" text-anchor="middle" class="s">to files/ (skip if it</text>
+  <text x="522" y="86" text-anchor="middle" class="s">is already there)</text>
+  <path d="M585 65 H610" class="a"/>
+  <rect x="610" y="30" width="105" height="70" rx="8" class="box amber"/>
+  <text x="662" y="52" text-anchor="middle" class="t">Claim it</text>
+  <text x="662" y="70" text-anchor="middle" class="s">uploads row for</text>
+  <text x="662" y="86" text-anchor="middle" class="s">this account</text>
+  <path d="M662 100 V135 H65 V100" class="ab dash"/>
+  <text x="362" y="152" text-anchor="middle" class="lbl">the app adds a card whose content.url is /files/3f9a…c1.jpg</text>
+</svg>
+<p>Only the accounts that claimed a file can open it, unless it is on a board you published with a read-only link. Web pages, SVGs and scripts are always sent as downloads, never run.</p>
+
+<h2><span class="n">5</span>Deleting and freeing space</h2>
+<svg viewBox="0 0 720 120">
+  <rect x="5" y="25" width="140" height="70" rx="8" class="box blue"/>
+  <text x="75" y="53" text-anchor="middle" class="t">Delete a card</text>
+  <text x="75" y="71" text-anchor="middle" class="s">and empty Trash</text>
+  <path d="M145 60 H175" class="a"/>
+  <rect x="175" y="25" width="150" height="70" rx="8" class="box grey"/>
+  <text x="250" y="53" text-anchor="middle" class="t">File marked unused</text>
+  <text x="250" y="71" text-anchor="middle" class="s">orphaned_at = now</text>
+  <path d="M325 60 H355" class="a"/>
+  <rect x="355" y="25" width="150" height="70" rx="8" class="box grey"/>
+  <text x="430" y="53" text-anchor="middle" class="t">Wait 30 minutes</text>
+  <text x="430" y="71" text-anchor="middle" class="s">so Undo still works</text>
+  <path d="M505 60 H535" class="a"/>
+  <rect x="535" y="25" width="180" height="70" rx="8" class="box red"/>
+  <text x="625" y="47" text-anchor="middle" class="t">Claim removed</text>
+  <text x="625" y="65" text-anchor="middle" class="s">space counts again; file deleted</text>
+  <text x="625" y="81" text-anchor="middle" class="s">from disk once nobody claims it</text>
+</svg>
+
+<h2><span class="n">6</span>Today and when it's hosted</h2>
+<svg viewBox="0 0 720 235">
+  <!-- today -->
+  <rect x="5" y="10" width="250" height="215" rx="10" class="box grey"/>
+  <text x="130" y="34" text-anchor="middle" class="t">Today: your laptop</text>
+  <rect x="25" y="50" width="210" height="44" rx="7" class="box blue"/>
+  <text x="130" y="77" text-anchor="middle" class="s">browser · phone on the same Wi-Fi</text>
+  <path d="M130 94 V112" class="a"/>
+  <rect x="25" y="112" width="210" height="44" rx="7" class="box green"/>
+  <text x="130" y="132" text-anchor="middle" class="s">Node server, port 5180</text>
+  <text x="130" y="147" text-anchor="middle" class="s">started with "canvasnotes"</text>
+  <path d="M130 156 V174" class="a"/>
+  <rect x="25" y="174" width="210" height="40" rx="7" class="box amber"/>
+  <text x="130" y="198" text-anchor="middle" class="s">canvasnotes/data/</text>
+
+  <path d="M265 118 H300" class="ab"/>
+
+  <!-- hosted -->
+  <rect x="300" y="10" width="415" height="215" rx="10" class="box blue"/>
+  <text x="507" y="34" text-anchor="middle" class="t">Hosted: notes.yashsuthar.com (planned)</text>
+  <rect x="318" y="50" width="120" height="44" rx="7" class="box"/>
+  <text x="378" y="70" text-anchor="middle" class="s">anyone's browser</text>
+  <text x="378" y="85" text-anchor="middle" class="s">HTTPS</text>
+  <path d="M438 72 H462" class="a"/>
+  <rect x="462" y="50" width="235" height="150" rx="8" class="box green"/>
+  <text x="580" y="70" text-anchor="middle" class="t">AWS Lightsail server</text>
+  <rect x="476" y="80" width="100" height="38" rx="6" class="box"/>
+  <text x="526" y="96" text-anchor="middle" class="s">Caddy</text>
+  <text x="526" y="110" text-anchor="middle" class="s">free HTTPS</text>
+  <path d="M576 99 H592" class="a"/>
+  <rect x="592" y="80" width="92" height="38" rx="6" class="box"/>
+  <text x="638" y="96" text-anchor="middle" class="s">Node server</text>
+  <text x="638" y="110" text-anchor="middle" class="s">same program</text>
+  <rect x="476" y="130" width="208" height="30" rx="6" class="box amber"/>
+  <text x="580" y="150" text-anchor="middle" class="s">data/ on the server's disk</text>
+  <rect x="476" y="166" width="208" height="28" rx="6" class="box"/>
+  <text x="580" y="185" text-anchor="middle" class="s">Litestream: copies DB changes out</text>
+  <path d="M476 180 H440 V160" class="a"/>
+  <rect x="318" y="118" width="120" height="44" rx="7" class="box amber"/>
+  <text x="378" y="138" text-anchor="middle" class="s">Amazon S3</text>
+  <text x="378" y="153" text-anchor="middle" class="s">backups</text>
+</svg>
+
+<table>
+  <tr><th>Piece</th><th>What it is</th><th>Where it runs</th></tr>
+  <tr><td>App</td><td>React + TypeScript, built into plain files in <code>dist/</code></td><td>served by the Node server</td></tr>
+  <tr><td>Server</td><td>Node 24, no extra packages</td><td>laptop now · Lightsail later</td></tr>
+  <tr><td>Database</td><td>SQLite (<code>node:sqlite</code>), one file</td><td><code>data/canvasnotes.db</code></td></tr>
+  <tr><td>Uploads</td><td>files named by content hash</td><td><code>data/files/</code></td></tr>
+  <tr><td>Backups</td><td>Litestream (DB) + a nightly copy of <code>files/</code></td><td>Amazon S3 (planned)</td></tr>
+</table>
+</div>
+</body>
+</html>
