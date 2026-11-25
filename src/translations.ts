@@ -650,6 +650,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Recording was too short": "La grabación era demasiado corta",
     "Couldn't save the recording": "No se pudo guardar la grabación",
     "Couldn't play this recording": "No se pudo reproducir esta grabación",
+    "Record a voice note (R)": "Grabar una nota de voz (R)",
+    "Record a voice note at the pointer; again to stop and save": "Grabar una nota de voz en el puntero; otra vez para detener y guardar",
+    "Pause or resume the recording": "Pausar o reanudar la grabación",
   },
   fr: {
     "! space": "! espace",
@@ -1300,6 +1303,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Recording was too short": "L'enregistrement était trop court",
     "Couldn't save the recording": "Impossible de sauvegarder l'enregistrement",
     "Couldn't play this recording": "Impossible de lire cet enregistrement",
+    "Record a voice note (R)": "Enregistrer une note vocale (R)",
+    "Record a voice note at the pointer; again to stop and save": "Enregistrer une note vocale sous le pointeur ; encore pour arrêter et enregistrer",
+    "Pause or resume the recording": "Mettre en pause ou reprendre l'enregistrement",
   },
   pt: {
     "! space": "! espaço",
@@ -1950,6 +1956,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Recording was too short": "A gravação foi curta demais",
     "Couldn't save the recording": "Não foi possível salvar a gravação",
     "Couldn't play this recording": "Não foi possível reproduzir esta gravação",
+    "Record a voice note (R)": "Gravar uma nota de voz (R)",
+    "Record a voice note at the pointer; again to stop and save": "Gravar uma nota de voz no ponteiro; de novo para parar e salvar",
+    "Pause or resume the recording": "Pausar ou retomar a gravação",
   },
   de: {
     "! space": "! Leertaste",
@@ -2600,6 +2609,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Recording was too short": "Die Aufnahme war zu kurz",
     "Couldn't save the recording": "Aufnahme konnte nicht gespeichert werden",
     "Couldn't play this recording": "Diese Aufnahme konnte nicht abgespielt werden",
+    "Record a voice note (R)": "Sprachnotiz aufnehmen (R)",
+    "Record a voice note at the pointer; again to stop and save": "Sprachnotiz am Mauszeiger aufnehmen; nochmal zum Stoppen und Speichern",
+    "Pause or resume the recording": "Aufnahme anhalten oder fortsetzen",
   },
   it: {
     "! space": "! spazio",
@@ -3250,6 +3262,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Recording was too short": "La registrazione era troppo breve",
     "Couldn't save the recording": "Impossibile salvare la registrazione",
     "Couldn't play this recording": "Impossibile riprodurre questa registrazione",
+    "Record a voice note (R)": "Registra una nota vocale (R)",
+    "Record a voice note at the pointer; again to stop and save": "Registra una nota vocale sul puntatore; di nuovo per fermare e salvare",
+    "Pause or resume the recording": "Metti in pausa o riprendi la registrazione",
   },
   nl: {
     "! space": "! spatie",
@@ -3900,6 +3915,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Recording was too short": "De opname was te kort",
     "Couldn't save the recording": "Kan de opname niet opslaan",
     "Couldn't play this recording": "Kan deze opname niet afspelen",
+    "Record a voice note (R)": "Spraaknotitie opnemen (R)",
+    "Record a voice note at the pointer; again to stop and save": "Spraaknotitie bij de aanwijzer opnemen; nogmaals om te stoppen en op te slaan",
+    "Pause or resume the recording": "Opname pauzeren of hervatten",
   },
   pl: {
     "! space": "! spacja",
@@ -4550,6 +4568,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Recording was too short": "Nagranie było za krótkie",
     "Couldn't save the recording": "Nie udało się zapisać nagrania",
     "Couldn't play this recording": "Nie udało się odtworzyć tego nagrania",
+    "Record a voice note (R)": "Nagraj notatkę głosową (R)",
+    "Record a voice note at the pointer; again to stop and save": "Nagraj notatkę głosową przy kursorze; ponownie, aby zatrzymać i zapisać",
+    "Pause or resume the recording": "Wstrzymaj lub wznów nagrywanie",
   },
   ru: {
     "! space": "! пробел",
@@ -5200,6 +5221,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Recording was too short": "Запись слишком короткая",
     "Couldn't save the recording": "Не удалось сохранить запись",
     "Couldn't play this recording": "Не удалось воспроизвести запись",
+    "Record a voice note (R)": "Записать голосовую заметку (R)",
+    "Record a voice note at the pointer; again to stop and save": "Записать голосовую заметку у курсора; ещё раз — остановить и сохранить",
+    "Pause or resume the recording": "Приостановить или продолжить запись",
   },
   ja: {
     "! space": "! スペース",
@@ -5850,6 +5874,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Recording was too short": "録音が短すぎます",
     "Couldn't save the recording": "録音を保存できませんでした",
     "Couldn't play this recording": "この録音を再生できませんでした",
+    "Record a voice note (R)": "音声メモを録音 (R)",
+    "Record a voice note at the pointer; again to stop and save": "ポインターの位置に音声メモを録音、もう一度押すと停止して保存",
+    "Pause or resume the recording": "録音を一時停止または再開",
   },
   zh: {
     "! space": "! 空格",
@@ -6500,6 +6527,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Recording was too short": "录音太短",
     "Couldn't save the recording": "无法保存录音",
     "Couldn't play this recording": "无法播放此录音",
+    "Record a voice note (R)": "录制语音笔记 (R)",
+    "Record a voice note at the pointer; again to stop and save": "在指针处录制语音笔记；再按一次停止并保存",
+    "Pause or resume the recording": "暂停或继续录音",
   },
   ko: {
     "! space": "! 스페이스",
@@ -7150,5 +7180,8 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     "Recording was too short": "녹음이 너무 짧습니다",
     "Couldn't save the recording": "녹음을 저장할 수 없습니다",
     "Couldn't play this recording": "이 녹음을 재생할 수 없습니다",
+    "Record a voice note (R)": "음성 메모 녹음 (R)",
+    "Record a voice note at the pointer; again to stop and save": "포인터 위치에 음성 메모 녹음, 다시 누르면 중지하고 저장",
+    "Pause or resume the recording": "녹음 일시정지 또는 계속",
   },
 };

@@ -255,6 +255,9 @@ export function startRecording(id: string) {
   void active.start();
 }
 
+// The card being recorded right now.
+export const recordingId = () => active?.id ?? null;
+export const isWaitingForMic = (id: string) => sessions.get(id)?.phase === 'starting';
 export const stopRecording = () => active?.stop();
 export const togglePauseRecording = () => active?.togglePause();
 

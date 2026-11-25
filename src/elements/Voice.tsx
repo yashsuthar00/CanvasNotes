@@ -46,9 +46,9 @@ const PLAY = 'M8 5.5v13l10.5-6.5z';
 const PAUSE = 'M7 5h3.5v14H7zM13.5 5H17v14h-3.5z';
 const STOP = 'M6.5 6.5h11v11h-11z';
 
-function Round({ label, onClick, kind = '', children }: { label: string; onClick(): void; kind?: string; children: ReactNode }) {
+function Round({ label, hotkey, onClick, kind = '', children }: { label: string; hotkey?: string; onClick(): void; kind?: string; children: ReactNode }) {
   return (
-    <button data-nodrag className={`voice-round ${kind}`} title={label} aria-label={label} onClick={onClick}>
+    <button data-nodrag className={`voice-round ${kind}`} title={hotkey ? `${label} (${hotkey})` : label} aria-label={label} onClick={onClick}>
       {children}
     </button>
   );
@@ -127,15 +127,15 @@ function RecordingControls({ id, session }: { id: string; session: VoiceSession 
   return (
     <>
       <div className={`voice-row ${paused ? 'paused' : ''}`}>
-        <Round label={t('Stop and save')} kind="stop" onClick={stopRecording}>
+        <Round label={t('Stop and save')} hotkey="R" kind="stop" onClick={stopRecording}>
           <Glyph d={STOP} />
         </Round>
         <LiveBars levels={session.levels} />
         <span className="voice-time">{formatTime(session.ms / 1000)}</span>
-        <button data-nodrag className="voice-x" title={t(paused ? 'Resume' : 'Pause')} aria-label={t(paused ? 'Resume' : 'Pause')} onClick={togglePauseRecording}>
+        <button data-nodrag className="voice-x" title={`${t(paused ? 'Resume' : 'Pause')} (P)`} aria-label={t(paused ? 'Resume' : 'Pause')} onClick={togglePauseRecording}>
           {paused ? <MicIcon /> : <Glyph d={PAUSE} />}
         </button>
-        <button data-nodrag className="voice-x" title={t('Discard recording')} aria-label={t('Discard recording')} onClick={() => cancelRecording(id)}>
+        <button data-nodrag className="voice-x" title={`${t('Discard recording')} (Shift R)`} aria-label={t('Discard recording')} onClick={() => cancelRecording(id)}>
           ✕
         </button>
       </div>

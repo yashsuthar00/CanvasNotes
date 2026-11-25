@@ -46,10 +46,11 @@ import {
   pasteStyle,
   centerPlacement,
   fetchLinkPreview,
+  toggleVoice,
 } from './actions';
 import { openDrawing } from './elements/Sketch';
 import { RecordingBar } from './elements/Voice';
-import { togglePlay } from './voice';
+import { cancelRecording, recordingId, togglePauseRecording, togglePlay } from './voice';
 import { bufferPendingKey } from './elements/RichText';
 import { jumpToArea } from './areas';
 import { allRects, fitRects, getViewport, setViewport, startKeyPan, stopKeyPan, zoomAt } from './viewport';
@@ -227,6 +228,13 @@ function onKeyDown(e: KeyboardEvent) {
   } else if (key === 'n' && !mod && !e.altKey) {
     const at = jumpToArea(e.shiftKey ? -1 : 1);
     if (at && at.total > 1) toast(t('Area {i} of {n}', { i: at.index + 1, n: at.total }));
+  } else if (key === 'r' && !mod && !e.altKey) {
+    if (e.repeat) return; // holding the key must not start and stop over and over
+    const id = recordingId();
+    if (!e.shiftKey) toggleVoice(pastePlacement);
+    else if (id) cancelRecording(id);
+  } else if (key === 'p' && !mod && !e.altKey && !e.shiftKey && recordingId()) {
+    if (!e.repeat) togglePauseRecording();
   } else if (key === 'u' && !mod && selection.length) {
     moveToInbox(selection);
   } else if (key === 'd' && !mod) {
@@ -257,6 +265,7 @@ function onKeyDown(e: KeyboardEvent) {
 function handAllows(e: KeyboardEvent, mod: boolean, look: boolean) {
   const key = e.key.toLowerCase();
   if (look || ['escape', '?', 'h', 'v'].includes(key) || (e.shiftKey && e.code === 'Digit1')) return true;
+  if (!mod && !e.altKey && ['r', 'p'].includes(key) && recordingId()) return true; // end or pause a running recording
   if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) return true; // back / forward
   if (e.key === 'Backspace' && !getState().selection.length) return true; // up to the parent board
   if (mod && e.shiftKey) return ['p', 'd', '+', '=', '-', '_'].includes(key); // present, theme, interface size

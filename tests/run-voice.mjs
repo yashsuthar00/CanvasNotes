@@ -1,6 +1,6 @@
 // Voice notes, recorded through Chrome's fake microphone (a beep every second):
 // drop the badge and it records, stop saves, play / seek / speed, undo and redo,
-// deleting mid-recording, blocked microphone, failed upload, published boards.
+// the R / P / Shift R keys, deleting mid-recording, blocked microphone, failed upload, published boards.
 //   node tests/run-voice.mjs [check ids]      (port 5216)
 import { createSuite, rand, assert, wait, PNG } from './harness.mjs';
 
@@ -331,6 +331,93 @@ await check('A14', 'Phone: tap the tool to record, tap to stop and play', async 
   assert(await q.locator('.voice [aria-label="Pause"]').count(), 'not playing');
   await tidy(q, 'phone playing');
   await shot(q, 'phone playing');
+});
+
+await check('A15', 'R records at the pointer (stop button under it), R stops, R again records on the next spot', async () => {
+  const q = await open();
+  const img = await q.locator('[data-el="img"]').boundingBox();
+  const at = [img.x + 150, img.y + 90];
+  await q.mouse.move(...at);
+  await q.keyboard.press('r');
+  await recording(q);
+  const b = await q.locator('.world [aria-label="Stop and save"]').boundingBox();
+  assert(Math.abs(b.x + b.width / 2 - at[0]) < 3 && Math.abs(b.y + b.height / 2 - at[1]) < 3, `stop button at ${b.x + b.width / 2},${b.y + b.height / 2}, pointer ${at}`);
+  await shot(q, 'R over the image');
+  await wait(1400);
+  await q.mouse.move(900, 600);
+  await q.keyboard.press('r');
+  await saved(q);
+  await wait(900);
+  assert((await shown(q)) === 1 && (await onServer(q))[0].content.src, 'R did not stop and save');
+  await q.keyboard.press('r');
+  await recording(q);
+  assert((await shown(q)) === 2, 'second note not added');
+  await wait(1200);
+  await q.mouse.click(1000, 300);
+  await q.keyboard.press('r');
+  await wait(1500);
+  assert((await onServer(q)).filter((e) => e.content.src).length === 2, 'second one not saved');
+});
+
+await check('A16', 'P pauses and resumes, Shift R discards, holding R does not flicker, R while typing types', async () => {
+  const q = await open();
+  await q.keyboard.press('p');
+  await q.mouse.move(800, 300);
+  await q.keyboard.down('r');
+  await recording(q);
+  for (let i = 0; i < 5; i++) await q.keyboard.down('r'); // key repeat
+  await q.keyboard.up('r');
+  await wait(800);
+  assert(await q.locator('.world .voice.recording').count(), 'key repeat ended the recording');
+  await q.keyboard.press('p');
+  await q.locator('.world [aria-label="Resume"]').waitFor({ timeout: 2000 });
+  const t0 = await q.locator('.world .voice-time').innerText();
+  await wait(1500);
+  assert((await q.locator('.world .voice-time').innerText()) === t0, 'time moved while paused');
+  await q.keyboard.press('p');
+  await q.locator('.world [aria-label="Pause"]').waitFor({ timeout: 2000 });
+  // A note being typed keeps its letters.
+  await q.mouse.dblclick(1000, 600);
+  await wait(400);
+  await q.keyboard.type('rpR');
+  await wait(200);
+  assert((await q.locator('.item-note').innerText()).includes('rpR'), 'letters went to the recording');
+  assert(await q.locator('.world .voice.recording').count(), 'typing ended the recording');
+  await q.mouse.click(1150, 250);
+  await wait(200);
+  await q.keyboard.press('Shift+R');
+  await wait(1200);
+  assert((await shown(q)) === 0 && (await onServer(q)).length === 0, 'not discarded');
+});
+
+await check('A17', 'Move mode: R starts nothing but still stops a running one; columns take the note; Ctrl R still reloads', async () => {
+  const q = await open();
+  await q.mouse.move(800, 300);
+  await q.keyboard.press('r');
+  await recording(q);
+  await wait(1000);
+  await q.keyboard.press('h');
+  await q.keyboard.press('p');
+  await q.locator('.world [aria-label="Resume"]').waitFor({ timeout: 2000 });
+  await q.keyboard.press('r');
+  await saved(q);
+  await wait(900);
+  await q.keyboard.press('r');
+  await wait(600);
+  assert((await shown(q)) === 1, 'R added a card in Move mode');
+  await q.keyboard.press('v');
+  const col = await q.locator('[data-el="col"]').boundingBox();
+  await q.mouse.move(col.x + 100, col.y + col.height / 2);
+  await q.keyboard.press('r');
+  await recording(q);
+  assert(await q.locator('[data-el="col"] .item-voice').count(), 'not in the column');
+  await wait(800);
+  await q.keyboard.press('r');
+  await wait(1500);
+  const before = await shown(q);
+  await q.keyboard.press('Control+r');
+  await wait(800);
+  assert((await shown(q)) === before && !(await q.locator('.voice.recording').count()), 'Ctrl R started a recording');
 });
 
 await suite.finish();

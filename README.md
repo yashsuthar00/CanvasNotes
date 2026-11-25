@@ -145,7 +145,9 @@ Right-click anything for its menu. `?` lists every shortcut.
   Vimeo, Spotify, SoundCloud and Google Maps links become players and maps.
 
 - **Voice notes**: drag *Voice* from the toolbar next to a picture and talk; it
-  records from the moment you drop it. Stop saves it on the board. Click the bars
+  records from the moment you drop it. Stop saves it on the board. Or point at the spot
+  and press **R**: it records there, **R** again stops and saves, **P** pauses or
+  resumes, **Shift R** discards. Click the bars
   to jump, `1×` changes the speed, Enter plays the selected one. Recording needs
   `https` or `localhost` (browsers block the microphone on plain `http`
   addresses such as a phone on the Wi-Fi; there you can upload audio instead).
@@ -202,7 +204,7 @@ land centred on the pointer at every zoom (7 checks, about 15 seconds).
 
 `npm run test:voice` records voice notes through Chrome's fake microphone: drop
 and record, play, seek, undo and redo, deleting mid-recording, a blocked
-microphone, a failed upload, published boards (14 checks, about a minute).
+microphone, a failed upload, published boards (17 checks, about a minute and a half).
 
 These seven start their own servers (ports 5192–5216), so nothing needs to be
 running. With `EVIDENCE_DIR=<folder>` they also keep screenshots and a JSON

@@ -20,7 +20,7 @@ import {
 import { COLUMN_CHILD_TYPES, DEFAULT_WIDTH, type El, type ElementOf, type ElementType, type Rect } from './types';
 import { allRects, contains, union, viewCenter } from './viewport';
 import { importSpreadsheet, isSpreadsheet } from './moreActions';
-import { startRecording } from './voice';
+import { cancelRecording, isWaitingForMic, recordingId, startRecording, stopRecording } from './voice';
 
 export interface Placement {
   x: number;
@@ -120,6 +120,19 @@ export function createElement(type: ElementType, at: Placement = centerPlacement
   }
   addElements([el], { edit: type !== 'swatch' });
   return el;
+}
+
+// Records a voice note at a point; the round stop button ends up under the pointer.
+export function voiceAt(at: Placement) {
+  createElement('voice', at.centered && !at.columnId ? { ...at, x: at.x - 27, y: at.y - 25 } : at);
+}
+
+// The R key: starts a voice note at the pointer, or stops and saves the running one.
+export function toggleVoice(at: () => Placement) {
+  const id = recordingId();
+  if (!id) return voiceAt(at());
+  if (isWaitingForMic(id)) cancelRecording(id);
+  else stopRecording();
 }
 
 export function pickFiles(accept: string, onPick: (files: File[]) => void) {
