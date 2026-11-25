@@ -150,10 +150,11 @@ export function exportElement(id: string) {
     case 'sketch':
       return downloadText(`${name}.svg`, strokesToSvg(el.content.strokes, el.content.ratio, el.content.background), 'image/svg+xml');
     case 'image':
+    case 'voice':
     case 'file': {
       const a = document.createElement('a');
       a.href = el.content.src;
-      a.download = el.type === 'file' ? el.content.name : name;
+      a.download = el.type === 'file' || el.type === 'voice' ? el.content.name : name;
       a.click();
       return;
     }

@@ -3390,3 +3390,158 @@ body {
     height: 42px;
   }
 }
+
+/* Voice notes */
+.voice {
+  padding: 8px 10px;
+}
+.voice.recording {
+  box-shadow: var(--card-shadow), 0 0 0 2px var(--danger);
+}
+.voice-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+}
+.voice-round {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.voice-round.record,
+.voice-round.stop {
+  background: var(--danger);
+}
+.voice-round.waiting {
+  background: var(--accent-soft);
+  color: var(--accent);
+  cursor: default;
+}
+.voice-bars {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  overflow: hidden;
+  cursor: pointer;
+}
+.voice-bars.live {
+  justify-content: flex-end; /* when narrow, the oldest bars are the ones cut off */
+  cursor: inherit;
+}
+.voice-bars i {
+  flex: 1;
+  min-width: 1px;
+  min-height: 2px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--text) 26%, transparent);
+  pointer-events: none;
+}
+.voice-bars i.on {
+  background: var(--accent);
+}
+.voice-bars.live i {
+  background: var(--danger);
+}
+.voice-row.paused .voice-bars.live i {
+  background: color-mix(in srgb, var(--text) 26%, transparent);
+}
+.voice-time {
+  flex: none;
+  font-size: 12px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.voice-note {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-2);
+  font-size: 13px;
+}
+.voice-x,
+.voice-rate {
+  flex: none;
+  border: 0;
+  border-radius: 6px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  background: none;
+  color: var(--text-2);
+  font-size: 12px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.voice-x:hover,
+.voice-rate:hover {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.voice-round:focus-visible,
+.voice-x:focus-visible,
+.voice-rate:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.voice-hint {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--danger);
+}
+.voice-message {
+  font-size: 13px;
+  line-height: 1.4;
+}
+.voice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.voice-actions button {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-2);
+  padding: 4px 9px;
+  font-size: 12px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+/* Shown while the card being recorded is out of view. */
+.voice-dock {
+  position: fixed;
+  left: 50%;
+  top: calc(60px + env(safe-area-inset-top));
+  transform: translateX(-50%);
+  z-index: 60;
+  width: min(300px, calc(100vw - 32px));
+  padding: 8px 10px;
+  background: var(--panel);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow-lift), 0 0 0 2px var(--danger);
+}
+@media (pointer: coarse) {
+  .voice-round {
+    width: 40px;
+    height: 40px;
+  }
+  .voice-x,
+  .voice-rate {
+    min-width: 36px;
+    height: 36px;
+  }
+}

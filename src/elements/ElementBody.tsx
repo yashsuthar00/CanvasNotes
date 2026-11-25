@@ -11,6 +11,7 @@ import { fetchLinkPreview, hostOf, isUrl } from '../actions';
 import { navigate } from '../store';
 import { SketchView, StrokesSvg } from './Sketch';
 import { TableBody } from './Table';
+import { VoiceBody } from './Voice';
 import { AliasBody, CommentBody, DocumentBody, HeadingBody } from './MoreBodies';
 import { embedFor, LINK_PLACEHOLDERS } from '../embeds';
 import { numLocale } from '../locale';
@@ -40,6 +41,8 @@ export const ElementBody = memo(function ElementBody({ el, editing, selected }: 
       return <SwatchBody el={el} editing={editing} selected={selected} />;
     case 'file':
       return <FileBody el={el} editing={editing} selected={selected} />;
+    case 'voice':
+      return <VoiceBody el={el} />;
     case 'heading':
       return <HeadingBody el={el} editing={editing} />;
     case 'alias':

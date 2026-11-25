@@ -115,7 +115,7 @@ export function FileInfoModal({ id }: { id: string }) {
   const el = useElement(id);
   const [dims, setDims] = useState<string | null>(null);
   const [bytes, setBytes] = useState<number | null>(null);
-  const src = el?.type === 'image' || el?.type === 'file' ? el.content.src : '';
+  const src = el?.type === 'image' || el?.type === 'file' || el?.type === 'voice' ? el.content.src : '';
   useEffect(() => {
     if (!src) return;
     if (el?.type === 'image') {
@@ -127,11 +127,11 @@ export function FileInfoModal({ id }: { id: string }) {
       .then((r) => setBytes(Number(r.headers.get('content-length')) || null))
       .catch(() => {});
   }, [src, el?.type]);
-  if (!el || (el.type !== 'image' && el.type !== 'file')) return null;
+  if (!el || (el.type !== 'image' && el.type !== 'file' && el.type !== 'voice')) return null;
   const rows: [string, string][] = [
-    ['Name', el.type === 'file' ? el.content.name : el.content.caption || src.split('/').pop() || ''],
-    ['Type', el.type === 'file' ? el.content.mime : src.split('.').pop()?.toUpperCase() + ' image'],
-    ['Size', el.type === 'file' ? formatSize(el.content.size) : bytes ? formatSize(bytes) : '…'],
+    ['Name', el.type !== 'image' ? el.content.name : el.content.caption || src.split('/').pop() || ''],
+    ['Type', el.type !== 'image' ? el.content.mime : src.split('.').pop()?.toUpperCase() + ' image'],
+    ['Size', el.type !== 'image' ? formatSize(el.content.size) : bytes ? formatSize(bytes) : '…'],
     ...(dims ? ([['Dimensions', dims]] as [string, string][]) : []),
     ['Added', `${new Date(el.createdAt).toLocaleString(numLocale(), { hour12: hour12() })} (${timeAgo(el.createdAt)})`],
     ['Link', location.origin + src],

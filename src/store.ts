@@ -304,6 +304,14 @@ function applyHistory(from: HistoryEntry[], to: HistoryEntry[], side: 'before' |
 export const undo = () => applyHistory(undoStack, redoStack, 'before');
 export const redo = () => applyHistory(redoStack, undoStack, 'after');
 
+// Completes an element inside the undo/redo steps that mention it, for content
+// that arrives after the step was made (a recording that has just been saved).
+export function fillHistory(id: string, fill: (el: El) => El) {
+  for (const entry of [...undoStack, ...redoStack]) {
+    for (const side of [entry.before, entry.after]) if (side[id]) side[id] = fill(side[id]!);
+  }
+}
+
 export function patchElement(id: string, patch: Patch, opts?: CommitOptions) {
   patchElements({ [id]: patch }, opts);
 }
@@ -389,6 +397,7 @@ export function defaultContent<T extends ElementType>(type: T): ContentByType[T]
     line: { from: { x: 0, y: 0 }, to: { x: 160, y: 0 }, arrow: 'end' },
     swatch: { hex: '#f4c95d' },
     file: { src: '', name: '', size: 0, mime: '' },
+    voice: { src: '', name: '', size: 0, mime: '', duration: 0 },
     sketch: { strokes: [], ratio: 0.66 },
     table: {
       title: '',

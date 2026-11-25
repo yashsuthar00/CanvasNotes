@@ -33,6 +33,7 @@ const TOOLS: Tool[] = [
   { id: 'table', type: 'table', hint: 'Table with formulas', icon: <I><rect x="3.5" y="5" width="17" height="14" rx="1.5" /><path d="M3.5 10h17M3.5 14.5h17M9.5 5v14M15 5v14" /></I> },
   { id: 'image', type: 'image', hint: 'Upload images', icon: <I><rect x="3.5" y="5" width="17" height="14" rx="2" /><circle cx="9" cy="10" r="1.6" /><path d="M20.5 16l-5-5-8 8" /></I> },
   { id: 'file', type: 'file', hint: 'Upload any file', icon: <I d="M12 16V4M7 9l5-5 5 5M5 20h14" /> },
+  { id: 'voice', type: 'voice', hint: 'Record a voice note', icon: <I><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" /></I> },
   { id: 'sketch', type: 'sketch', hint: 'Freehand sketch (D)', icon: <I d="M4 20c3-1 4-5 7-8s5-6 8-7c-1 3-4 5-7 8s-5 6-8 7zM14 6l4 4" /> },
   { id: 'document', type: 'document', hint: 'Long-form document', icon: <I><path d="M6 3h8l4 4v14H6z" /><path d="M14 3v4h4M9 12h6M9 15.5h6" /></I> },
   { id: 'heading', type: 'heading', hint: 'Large heading text', icon: <I d="M6 5v14M18 5v14M6 12h12" /> },

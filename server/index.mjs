@@ -51,6 +51,11 @@ const MIME = {
   '.pdf': 'application/pdf',
   '.mp4': 'video/mp4',
   '.webm': 'video/webm',
+  '.weba': 'audio/webm',
+  '.m4a': 'audio/mp4',
+  '.ogg': 'audio/ogg',
+  '.oga': 'audio/ogg',
+  '.opus': 'audio/ogg',
   '.mp3': 'audio/mpeg',
   '.wav': 'audio/wav',
   '.txt': 'text/plain; charset=utf-8',
@@ -145,7 +150,19 @@ function saveUpload(user, body, name, mime) {
 // Uploaded file types the browser may show inline. Anything else (HTML, SVG,
 // scripts, unknown types) is sent as a download in a sandbox, so an uploaded
 // page can never run as this site.
-const INLINE_UPLOADS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif', '.ico', '.pdf', '.mp4', '.webm', '.mp3', '.wav', '.txt']);
+const INLINE_UPLOADS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif', '.ico', '.pdf', '.mp4', '.webm', '.mp3', '.wav', '.weba', '.m4a', '.ogg', '.oga', '.opus', '.txt']);
+
+// The part of a file a "Range: bytes=…" header asks for (one range only), null
+// for the whole file, or undefined when the range lies outside it. Players use
+// this to jump around in audio and video; Safari won't play without it.
+function byteRange(header, size) {
+  const m = /^bytes=(\d*)-(\d*)$/.exec(header || '');
+  if (!m || (!m[1] && !m[2])) return null;
+  const start = m[1] ? Number(m[1]) : Math.max(0, size - Number(m[2]));
+  const end = m[1] && m[2] ? Math.min(Number(m[2]), size - 1) : size - 1;
+  if (start >= size) return undefined;
+  return start > end ? null : { start, end };
+}
 
 function serveFile(res, filePath, { immutable = false, upload = false, headers = {} } = {}) {
   fs.stat(filePath, (err, stat) => {
@@ -157,16 +174,23 @@ function serveFile(res, filePath, { immutable = false, upload = false, headers =
       if (ext !== '.pdf') extra['content-security-policy'] = "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox";
       if (!INLINE_UPLOADS.has(ext)) extra['content-disposition'] = 'attachment';
     }
-    res.writeHead(200, {
+    const range = upload ? byteRange(res.req.headers.range, stat.size) : null;
+    if (range === undefined) return send(res, 416, 'Range not satisfiable', { 'content-range': `bytes */${stat.size}` });
+    if (upload) extra['accept-ranges'] = 'bytes';
+    if (range) extra['content-range'] = `bytes ${range.start}-${range.end}/${stat.size}`;
+    res.writeHead(range ? 206 : 200, {
       'content-type': (upload && !INLINE_UPLOADS.has(ext) && ext !== '.svg' ? null : MIME[ext]) || 'application/octet-stream',
-      'content-length': stat.size,
+      'content-length': range ? range.end - range.start + 1 : stat.size,
       // Uploads are private to their owner: browsers may cache them, shared proxies may not.
       'cache-control': immutable ? `${upload ? 'private' : 'public'}, max-age=31536000, immutable` : 'no-cache',
       'x-content-type-options': 'nosniff',
       ...extra,
       ...headers,
     });
-    fs.createReadStream(filePath).pipe(res);
+    const stream = fs.createReadStream(filePath, range ?? {});
+    // The browser drops range requests all the time: let go of the file when it does.
+    res.on('close', () => stream.destroy());
+    stream.pipe(res);
   });
 }
 
@@ -281,11 +305,11 @@ function sendBoardZip(res, boardId, all, user) {
     if (seen.has(id)) return;
     seen.add(id);
     for (const el of byParent.get(id) || []) {
-      const src = el.type === 'image' || el.type === 'file' ? el.content?.src : null;
+      const src = ['image', 'file', 'voice'].includes(el.type) ? el.content?.src : null;
       if (src && src.startsWith('/files/') && store.ownsUpload(user.id, src.slice('/files/'.length))) {
         const file = safeJoin(FILES_DIR, src.slice('/files/'.length));
         if (file && fs.existsSync(file)) {
-          const base = (el.type === 'file' ? el.content.name : el.content.caption) || path.basename(file);
+          const base = (el.type !== 'image' ? el.content.name : el.content.caption) || path.basename(file);
           let name = prefix + zipSafe(base);
           if (!path.extname(name)) name += path.extname(file);
           let n = 1;
@@ -350,7 +374,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('x-frame-options', 'SAMEORIGIN');
   res.setHeader('referrer-policy', 'strict-origin-when-cross-origin');
   res.setHeader('x-content-type-options', 'nosniff');
-  res.setHeader('permissions-policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+  res.setHeader('permissions-policy', 'camera=(), microphone=(self), geolocation=(), payment=(), usb=()');
   res.setHeader('cross-origin-opener-policy', 'same-origin');
   if (req.headers['x-forwarded-proto'] === 'https' || req.socket.encrypted) res.setHeader('strict-transport-security', 'max-age=31536000');
   if (url.pathname.startsWith('/api/')) res.setHeader('cache-control', 'no-store');

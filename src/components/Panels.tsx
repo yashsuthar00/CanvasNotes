@@ -39,6 +39,7 @@ export const TYPE_LABEL: Record<El['type'], string> = {
   line: 'Line',
   swatch: 'Colour',
   file: 'File',
+  voice: 'Voice',
   sketch: 'Sketch',
   table: 'Table',
   document: 'Document',

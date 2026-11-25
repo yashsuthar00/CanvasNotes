@@ -25,7 +25,7 @@ export function SelectionBar({ onMenu }: { onMenu(menu: MenuState): void }) {
     else if (single.type === 'image' || single.type === 'file') safeUrl(single.content.src) && window.open(single.content.src, '_blank', 'noopener');
     else startEditing(single.id);
   };
-  const openLabel = !single
+  const openLabel = !single || single.type === 'voice'
     ? null
     : ['board', 'alias', 'document'].includes(single.type)
       ? t('Open')

@@ -14,6 +14,7 @@ export type ElementType =
   | 'line'
   | 'swatch'
   | 'file'
+  | 'voice'
   | 'sketch'
   | 'table'
   | 'document'
@@ -126,6 +127,17 @@ export interface FileContent {
   mime: string;
   media?: MediaOptions;
 }
+// A voice recording. `src` is empty until something has been recorded.
+export interface VoiceContent {
+  src: string;
+  name: string;
+  size: number;
+  mime: string;
+  // Seconds, measured while recording (the files themselves often don't say).
+  duration: number;
+  // Loudness along the recording, 0–100, for the bars.
+  peaks?: number[];
+}
 export interface SketchContent {
   strokes: Stroke[];
   ratio: number;
@@ -179,6 +191,7 @@ export interface ContentByType {
   line: LineContent;
   swatch: SwatchContent;
   file: FileContent;
+  voice: VoiceContent;
   sketch: SketchContent;
   table: TableContent;
   document: DocumentContent;
@@ -240,6 +253,7 @@ export const DEFAULT_WIDTH: Record<ElementType, number> = {
   line: 0,
   swatch: 120,
   file: 270,
+  voice: 290,
   sketch: 300,
   table: 420,
   document: 270,
@@ -258,6 +272,7 @@ export const COLUMN_CHILD_TYPES: ElementType[] = [
   'link',
   'swatch',
   'file',
+  'voice',
   'sketch',
   'table',
   'document',
@@ -265,7 +280,7 @@ export const COLUMN_CHILD_TYPES: ElementType[] = [
 ];
 
 // Types that show a "description" line under the card, like Milanote.
-export const CAPTION_TYPES: ElementType[] = ['board', 'alias', 'link', 'file', 'swatch', 'sketch', 'table', 'document'];
+export const CAPTION_TYPES: ElementType[] = ['board', 'alias', 'link', 'file', 'voice', 'swatch', 'sketch', 'table', 'document'];
 
 export const CARD_COLORS: { name: string; value: string | null }[] = [
   { name: 'Default', value: null },

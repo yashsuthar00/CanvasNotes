@@ -23,7 +23,9 @@ import {
   replaceImage,
   replacePreview,
   setLocked,
+  createElement,
 } from '../actions';
+import { startRecording } from '../voice';
 import { openDrawing } from '../elements/Sketch';
 import {
   REACTIONS,
@@ -49,7 +51,7 @@ export interface MenuState {
   world?: { x: number; y: number };
 }
 
-const COLORABLE = new Set<ElementType>(['note', 'column', 'board', 'todo', 'line', 'link', 'file', 'heading', 'table', 'document', 'comment', 'sketch']);
+const COLORABLE = new Set<ElementType>(['note', 'column', 'board', 'todo', 'line', 'link', 'file', 'voice', 'heading', 'table', 'document', 'comment', 'sketch']);
 
 // How many pointers are down right now (to tell whether a menu opened mid-press).
 let pointersDown = 0;
@@ -157,6 +159,7 @@ export function ContextMenu({ menu, onClose }: { menu: MenuState; onClose: () =>
         <Item onClick={addAt('table')}>{t('New Table')}</Item>
         <Item onClick={addAt('comment')}>{t('New Comment')}</Item>
         <Item onClick={addAt('link')}>{t('New Link')}</Item>
+        <Item onClick={() => createElement('voice', { x: menu.world!.x, y: menu.world!.y })}>{t('New Voice Note')}</Item>
         <Item onClick={addAt('line')}>{t('New Line')}</Item>
         <Item onClick={() => newFolder({ x: menu.world!.x, y: menu.world!.y })}>{t('New Folder')}</Item>
         <Item onClick={() => newPlaceholder({ x: menu.world!.x, y: menu.world!.y })}>{t('New Image/File Placeholder')}</Item>
@@ -342,6 +345,16 @@ export function ContextMenu({ menu, onClose }: { menu: MenuState; onClose: () =>
       {single?.type === 'file' && (
         <>
           <Item onClick={() => safeUrl(single.content.src) && window.open(single.content.src, '_blank', 'noopener')}>{t('Open File')}</Item>
+          <Item onClick={() => setState({ modal: { kind: 'fileInfo', id: single.id } })}>{t('File Info')}</Item>
+          <a className="menu-link" href={safeUrl(single.content.src) ?? undefined} download={single.content.name} onClick={onClose}>
+            {t('Download')}
+          </a>
+          <Item onClick={() => copyText(location.origin + single.content.src, 'Link copied')}>{t('Copy Link to File')}</Item>
+        </>
+      )}
+      {single?.type === 'voice' && single.content.src && (
+        <>
+          {!single.locked && <Item onClick={() => startRecording(single.id)}>{t('Record Again')}</Item>}
           <Item onClick={() => setState({ modal: { kind: 'fileInfo', id: single.id } })}>{t('File Info')}</Item>
           <a className="menu-link" href={safeUrl(single.content.src) ?? undefined} download={single.content.name} onClick={onClose}>
             {t('Download')}

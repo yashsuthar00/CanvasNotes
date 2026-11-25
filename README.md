@@ -2,7 +2,7 @@
 
 A self-hosted visual notes app in the style of Milanote. Put notes,
 headings, to-do lists, tables, sketches, documents, images, files, links,
-videos, maps and colour swatches anywhere on an endless board. Group them in
+videos, maps, voice recordings and colour swatches anywhere on an endless board. Group them in
 columns, connect them with arrows, label them, and put boards inside boards.
 It works on a laptop, an iPad and a phone.
 
@@ -144,6 +144,12 @@ Right-click anything for its menu. `?` lists every shortcut.
 - Paste or drop links, images and files straight onto the board. YouTube,
   Vimeo, Spotify, SoundCloud and Google Maps links become players and maps.
 
+- **Voice notes**: drag *Voice* from the toolbar next to a picture and talk; it
+  records from the moment you drop it. Stop saves it on the board. Click the bars
+  to jump, `1×` changes the speed, Enter plays the selected one. Recording needs
+  `https` or `localhost` (browsers block the microphone on plain `http`
+  addresses such as a phone on the Wi-Fi; there you can upload audio instead).
+
 **Organising.**
 - **Move around** with the arrow keys when nothing is selected (Shift goes faster); with cards selected they nudge the cards instead.
 - **Lost in empty space?** Arrows on the board's edges point to every group of cards off screen; click or tap one to fly there. Groups that lie in nearly the same direction share an arrow (with a count) until you get closer. **N** jumps to the next group of cards, **Shift N** to the previous one.
@@ -194,7 +200,11 @@ still work; it survives a reload; phones pan with one finger (8 checks, about
 `npm run test:paste` checks that pasted images, text, links, files and cards
 land centred on the pointer at every zoom (7 checks, about 15 seconds).
 
-These six start their own servers (ports 5192–5215), so nothing needs to be
+`npm run test:voice` records voice notes through Chrome's fake microphone: drop
+and record, play, seek, undo and redo, deleting mid-recording, a blocked
+microphone, a failed upload, published boards (14 checks, about a minute).
+
+These seven start their own servers (ports 5192–5216), so nothing needs to be
 running. With `EVIDENCE_DIR=<folder>` they also keep screenshots and a JSON
 report there.
 

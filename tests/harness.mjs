@@ -15,7 +15,7 @@ export const assert = (cond, msg) => {
 };
 export const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
 
-export async function createSuite(name) {
+export async function createSuite(name, { args = [] } = {}) {
   const only = process.argv[2]?.split(',');
   const evidence = process.env.EVIDENCE_DIR ? path.resolve(process.env.EVIDENCE_DIR) : null;
   const shotDir = evidence && path.join(evidence, 'shots', name);
@@ -25,7 +25,7 @@ export async function createSuite(name) {
   const contexts = [];
   const pageErrors = [];
   const started = Date.now();
-  const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome-stable', headless: true });
+  const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome-stable', headless: true, args });
   let current = null;
 
   const suite = {

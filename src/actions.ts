@@ -20,6 +20,7 @@ import {
 import { COLUMN_CHILD_TYPES, DEFAULT_WIDTH, type El, type ElementOf, type ElementType, type Rect } from './types';
 import { allRects, contains, union, viewCenter } from './viewport';
 import { importSpreadsheet, isSpreadsheet } from './moreActions';
+import { startRecording } from './voice';
 
 export interface Placement {
   x: number;
@@ -103,6 +104,12 @@ export function createElement(type: ElementType, at: Placement = centerPlacement
   if (type === 'sketch' || type === 'document') {
     addElements([el]);
     setState({ modal: type === 'sketch' ? { kind: 'draw', id: el.id } : { kind: 'document', id: el.id } });
+    return el;
+  }
+  if (type === 'voice') {
+    // Dropping the badge is the go-ahead: it starts listening right away.
+    addElements([el]);
+    startRecording(el.id);
     return el;
   }
   if (type === 'line') {
@@ -395,6 +402,8 @@ export function plainText(el: El): string {
       return [el.content.name, el.content.hex].filter(Boolean).join(' ');
     case 'file':
       return el.content.name;
+    case 'voice':
+      return el.caption || el.content.name.replace(/\.\w+$/, '') || t('Voice note');
     case 'line':
       return el.content.label || '';
     case 'heading':

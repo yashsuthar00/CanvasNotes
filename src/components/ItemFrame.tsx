@@ -5,7 +5,7 @@ import { CardExtras } from '../elements/MoreBodies';
 import { useCanvas } from './canvasContext';
 import { t } from '../i18n';
 
-const RESIZABLE = new Set(['note', 'heading', 'todo', 'image', 'link', 'column', 'file', 'swatch', 'sketch', 'table', 'document', 'comment']);
+const RESIZABLE = new Set(['note', 'heading', 'todo', 'image', 'link', 'column', 'file', 'voice', 'swatch', 'sketch', 'table', 'document', 'comment']);
 
 // Positions one element on the canvas (or in a column) and routes its pointer
 // events to the canvas, which owns selection and dragging.

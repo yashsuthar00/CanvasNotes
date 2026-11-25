@@ -63,6 +63,9 @@ function boardHtml(boardId: string, subBoards: boolean, depth = 1, seen = new Se
       case 'file':
         parts.push(`<p><a href="${location.origin}${el.content.src}">${escapeHtml(el.content.name)}</a></p>`);
         break;
+      case 'voice':
+        if (el.content.src) parts.push(`<p><a href="${location.origin}${el.content.src}">${escapeHtml(el.content.name)}</a></p>`);
+        break;
       case 'swatch':
         parts.push(`<p>Colour: ${escapeHtml(el.content.name ? `${el.content.name} ` : '')}${el.content.hex}</p>`);
         break;

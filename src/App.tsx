@@ -48,6 +48,8 @@ import {
   fetchLinkPreview,
 } from './actions';
 import { openDrawing } from './elements/Sketch';
+import { RecordingBar } from './elements/Voice';
+import { togglePlay } from './voice';
 import { bufferPendingKey } from './elements/RichText';
 import { jumpToArea } from './areas';
 import { allRects, fitRects, getViewport, setViewport, startKeyPan, stopKeyPan, zoomAt } from './viewport';
@@ -216,6 +218,7 @@ function onKeyDown(e: KeyboardEvent) {
     else if (el?.type === 'alias') navigate(el.content.boardId);
     else if (el?.type === 'sketch') openDrawing(el.id);
     else if (el?.type === 'document') setState({ modal: { kind: 'document', id: el.id } });
+    else if (el?.type === 'voice') togglePlay(el.id, el.content);
     else startEditing(selection[0]);
   } else if (key === 'l' && !mod) {
     setState({ tool: state.tool === 'line' ? null : 'line' });
@@ -372,6 +375,7 @@ export function App() {
       {presenting && <Presentation />}
       {panel === 'search' && <SearchPalette />}
       {panel === 'shortcuts' && <ShortcutsPanel />}
+      <RecordingBar />
       <ModalHost />
       <Toast />
     </div>

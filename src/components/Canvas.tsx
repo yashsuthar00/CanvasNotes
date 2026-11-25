@@ -696,6 +696,7 @@ export function Canvas() {
     else if (el.type === 'document') openDocument(el.id);
     else if (el.type === 'link' && getState().editingId !== el.id && el.content.url) safeUrl(el.content.url) && window.open(el.content.url, '_blank', 'noopener');
     else if (el.type === 'image' || el.type === 'file') safeUrl(el.content.src) && window.open(el.content.src, '_blank', 'noopener');
+    else if (el.type === 'voice') return; // its own buttons do everything
     else startEditing(el.id);
   };
 
