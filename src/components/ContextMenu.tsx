@@ -172,7 +172,7 @@ export function ContextMenu({ menu, onClose }: { menu: MenuState; onClose: () =>
           <Item onClick={() => setState({ modal: { kind: 'aiIdeas', at: { x: menu.world!.x, y: menu.world!.y } } })}>{t('AI Ideas…')}</Item>
         </Sub>
         <div className="menu-sep" />
-        <Item onClick={() => pasteInternal({ x: menu.world!.x, y: menu.world!.y }) || void 0} kbd="Ctrl V">
+        <Item onClick={() => pasteInternal({ x: menu.world!.x, y: menu.world!.y, centered: true }) || void 0} kbd="Ctrl V">
           {t('Paste')}
         </Item>
         <Item onClick={undo} kbd="Ctrl Z">

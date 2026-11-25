@@ -4,7 +4,7 @@
 import * as api from './api';
 import { addElements, commit, getState, makeElement, maxZ, patchElement, patchElements, setState, toast, uid } from './store';
 import { DEFAULT_WIDTH, type El, type ElementOf, type Stroke } from './types';
-import { centerPlacement, plainText, type Placement } from './actions';
+import { addPlaced, centerPlacement, plainText, type Placement } from './actions';
 import { downloadText, htmlToMarkdown, safeFileName } from './markdown';
 import { allRects } from './viewport';
 import { SKETCH_W } from './elements/Sketch';
@@ -279,7 +279,7 @@ export async function importSpreadsheet(file: File, at: Placement = centerPlacem
       w: Math.min(1200, Math.max(DEFAULT_WIDTH.table, cols * 110)),
       content: { title: file.name.replace(/\.[^.]+$/, ''), cells, header: true },
     });
-    addElements([table]);
+    addPlaced([table], at);
     toast(`Imported ${cells.length} rows from ${file.name}`);
   } catch (err) {
     toast(`Couldn't import ${file.name}: ${err instanceof Error ? err.message : err}`);

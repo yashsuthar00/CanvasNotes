@@ -1,4 +1,5 @@
 // User-level operations shared by the toolbar, keyboard, menus and canvas.
+import { flushSync } from 'react-dom';
 import { t } from './i18n';
 import { htmlToTextSafe } from './sanitize';
 import * as api from './api';
@@ -16,8 +17,8 @@ import {
   uid,
   dependents,
 } from './store';
-import { COLUMN_CHILD_TYPES, DEFAULT_WIDTH, type El, type ElementOf, type ElementType } from './types';
-import { allRects, contains, viewCenter } from './viewport';
+import { COLUMN_CHILD_TYPES, DEFAULT_WIDTH, type El, type ElementOf, type ElementType, type Rect } from './types';
+import { allRects, contains, union, viewCenter } from './viewport';
 import { importSpreadsheet, isSpreadsheet } from './moreActions';
 
 export interface Placement {
@@ -25,6 +26,8 @@ export interface Placement {
   y: number;
   columnId?: string | null;
   index?: number;
+  // The point is the middle of what's added (pasting), not its top-left corner.
+  centered?: boolean;
 }
 
 // Where a new element lands: at a canvas point, or inside a column.
@@ -33,6 +36,25 @@ function place(type: ElementType, at: Placement) {
     return { columnId: at.columnId, order: columnOrderAt(at.columnId, at.index ?? Infinity), x: 0, y: 0 };
   }
   return { columnId: null, x: Math.round(at.x), y: Math.round(at.y) };
+}
+
+// Adds new elements, then (for a centred placement) moves them as a group so
+// their middle is on the point. Heights are only known once rendered, so they
+// are measured; both steps are one undo step and happen before the next paint.
+export function addPlaced(els: El[], at: Placement) {
+  const free = at.centered ? els.filter((el) => !el.columnId) : [];
+  if (!free.length) return addElements(els);
+  const coalesce = `place:${els[0].id}`;
+  flushSync(() => addElements(els, { coalesce }));
+  const rects = free.flatMap((el) => {
+    const node = document.querySelector<HTMLElement>(`[data-el="${el.id}"]`);
+    return node ? [{ x: el.x, y: el.y, w: node.offsetWidth, h: node.offsetHeight }] : [];
+  });
+  if (!rects.length) return;
+  const box = union(rects);
+  const dx = Math.round(at.x - box.x - box.w / 2);
+  const dy = Math.round(at.y - box.y - box.h / 2);
+  patchElements(Object.fromEntries(free.map((el) => [el.id, { x: el.x + dx, y: el.y + dy }])), { coalesce });
 }
 
 let cascade = 0;
@@ -113,6 +135,9 @@ function imageRatio(src: string): Promise<number | undefined> {
   });
 }
 
+// Pasted, dropped and uploaded images start a bit wider than other cards.
+const NEW_IMAGE_WIDTH = 400;
+
 export async function addFiles(files: File[], at: Placement = centerPlacement()) {
   // CSV, TSV and Excel files become table cards (Milanote's spreadsheet import).
   const sheets = files.filter(isSpreadsheet);
@@ -129,7 +154,7 @@ export async function addFiles(files: File[], at: Placement = centerPlacement())
       const isImage = up.mime.startsWith('image/');
       const spot = { ...at, x: at.x + offset, y: at.y + offset, index };
       const el = isImage
-        ? makeElement('image', { ...place('image', spot), content: { src: up.url, ratio: await imageRatio(up.url) } })
+        ? makeElement('image', { ...place('image', spot), w: NEW_IMAGE_WIDTH, content: { src: up.url, ratio: await imageRatio(up.url) } })
         : makeElement('file', { ...place('file', spot), content: { src: up.url, name: up.name, size: up.size, mime: up.mime } });
       created.push(el);
       offset += 24;
@@ -139,7 +164,7 @@ export async function addFiles(files: File[], at: Placement = centerPlacement())
     }
   }
   if (created.length) {
-    addElements(created);
+    addPlaced(created, at);
     toast(t(created.length === 1 ? 'Added 1 file' : 'Added {n} files', { n: created.length }));
   }
 }
@@ -150,7 +175,7 @@ export function isUrl(text: string) {
 
 export function addLink(url: string, at: Placement = centerPlacement()) {
   const el = makeElement('link', { ...place('link', at), content: { url: url.trim(), loading: true } });
-  addElements([el]);
+  addPlaced([el], at);
   void fetchLinkPreview(el.id, url.trim());
   return el;
 }
@@ -197,7 +222,7 @@ export function addTextNote(text: string, at: Placement = centerPlacement()) {
     .map((p) => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`)
     .join('');
   const el = makeElement('note', { ...place('note', at), content: { html } });
-  addElements([el]);
+  addPlaced([el], at);
 }
 
 // ---------------------------------------------------------------- copy / paste / duplicate
@@ -205,6 +230,8 @@ export function addTextNote(text: string, at: Placement = centerPlacement()) {
 // The system clipboard gets plain text; pasting that same text back pastes the cards instead.
 let internalClipboard: El[] = [];
 let internalClipboardText = '';
+// The area the copied cards covered, so a paste can centre them on the pointer.
+let internalClipboardBox: Rect | null = null;
 
 // Elements plus everything inside them (column children, board contents).
 function withDependents(ids: string[]): El[] {
@@ -268,7 +295,22 @@ export function duplicate(ids = getState().selection) {
 export function copySelection() {
   const { selection, elements } = getState();
   if (selection.length === 0) return false;
-  internalClipboard = withDependents(selection).map((el) => structuredClone(el));
+  const picked = new Set(selection);
+  const boxes: Rect[] = [];
+  internalClipboard = withDependents(selection).map((el) => {
+    const copy = structuredClone(el);
+    if (!picked.has(el.id) || (el.columnId && picked.has(el.columnId))) return copy;
+    if (copy.type === 'line') {
+      for (const end of [copy.content.from, copy.content.to]) if (!end.id) boxes.push({ x: end.x, y: end.y, w: 0, h: 0 });
+      return copy;
+    }
+    const r = allRects().get(el.id);
+    // A card copied out of a column has no position of its own: use where it was shown.
+    if (copy.columnId && r) Object.assign(copy, { x: r.x, y: r.y });
+    boxes.push({ x: copy.x, y: copy.y, w: copy.columnId ? copy.w : (r?.w ?? copy.w), h: r?.h ?? 0 });
+    return copy;
+  });
+  internalClipboardBox = boxes.length ? union(boxes) : null;
   const rootIds = selection.filter((id) => elements[id]);
   const text = rootIds.map((id) => plainText(elements[id])).filter(Boolean).join('\n\n');
   internalClipboardText = text || `canvasnotes:${rootIds.join(',')}`;
@@ -281,11 +323,11 @@ export function pasteInternal(at: Placement) {
   const ids = new Set(internalClipboard.map((e) => e.id));
   const roots = new Set(internalClipboard.filter((e) => !ids.has(e.parentId) && !(e.columnId && ids.has(e.columnId))).map((e) => e.id));
   const { boardId } = getState();
-  const rootEls = internalClipboard.filter((e) => roots.has(e.id) && !e.columnId);
-  const minX = rootEls.length ? Math.min(...rootEls.map((e) => e.x)) : at.x;
-  const minY = rootEls.length ? Math.min(...rootEls.map((e) => e.y)) : at.y;
+  const box = internalClipboardBox ?? { x: at.x, y: at.y, w: 0, h: 0 };
+  const dx = Math.round(at.x - box.x - (at.centered ? box.w / 2 : 0));
+  const dy = Math.round(at.y - box.y - (at.centered ? box.h / 2 : 0));
   const source = internalClipboard.map((e) => (roots.has(e.id) ? { ...e, columnId: null } : e)) as El[];
-  const copies = cloneTree(source, roots, boardId, at.x - minX, at.y - minY);
+  const copies = cloneTree(source, roots, boardId, dx, dy);
   addElements(copies, { select: false });
   setState({ selection: copies.filter((c) => c.parentId === boardId && !c.columnId).map((c) => c.id) });
   return true;

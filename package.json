@@ -17,7 +17,8 @@
     "test:security": "node tests/run-security.mjs",
     "test:responsive": "node tests/run-responsive.mjs",
     "test:areas": "node tests/run-areas.mjs",
-    "test:move": "node tests/run-move.mjs"
+    "test:move": "node tests/run-move.mjs",
+    "test:paste": "node tests/run-paste.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",

@@ -191,7 +191,10 @@ and drops change nothing on the server; arrows, N, zoom and the edge arrows
 still work; it survives a reload; phones pan with one finger (8 checks, about
 15 seconds).
 
-These five start their own servers (ports 5192–5214), so nothing needs to be
+`npm run test:paste` checks that pasted images, text, links, files and cards
+land centred on the pointer at every zoom (7 checks, about 15 seconds).
+
+These six start their own servers (ports 5192–5215), so nothing needs to be
 running. With `EVIDENCE_DIR=<folder>` they also keep screenshots and a JSON
 report there.
 

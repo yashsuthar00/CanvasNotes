@@ -59,7 +59,7 @@ function isTyping(target: EventTarget | null) {
   return !!el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName));
 }
 
-// Where pasted things land: the last pointer position over the board, or the view centre.
+// Where pasted things land: centred on the last pointer position over the board, or the view centre.
 let lastPointer: { x: number; y: number } | null = null;
 window.addEventListener('pointermove', (e) => {
   lastPointer = { x: e.clientX, y: e.clientY };
@@ -72,7 +72,7 @@ function pastePlacement() {
     const x = (lastPointer.x - canvas.left - vp.x) / vp.zoom;
     const y = (lastPointer.y - canvas.top - vp.y) / vp.zoom;
     const column = columnAt({ x, y });
-    return { x, y, ...(column ? { columnId: column.id, index: column.index } : {}) };
+    return { x, y, centered: true, ...(column ? { columnId: column.id, index: column.index } : {}) };
   }
   return centerPlacement();
 }

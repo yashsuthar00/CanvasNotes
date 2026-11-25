@@ -430,10 +430,10 @@ export function makeElement<T extends ElementType>(
   };
 }
 
-export function addElements(els: El[], { select = true, edit = false } = {}) {
+export function addElements(els: El[], { select = true, edit = false, coalesce }: { select?: boolean; edit?: boolean; coalesce?: string } = {}) {
   const changes: Record<string, El> = {};
   for (const el of els) changes[el.id] = el;
-  commit(changes);
+  commit(changes, { coalesce });
   if (select) setState({ selection: els.map((e) => e.id), editingId: edit && els.length === 1 ? els[0].id : null });
 }
 
