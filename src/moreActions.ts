@@ -21,7 +21,7 @@ export function createSyncedCopy(id: string) {
   const r = allRects().get(el.columnId ?? el.id);
   const x = r ? r.x + r.w + 40 : el.x + el.w + 40;
   const y = r ? r.y : el.y;
-  const copy = { ...structuredClone(el), id: uid(), syncId, columnId: null, x: Math.round(x), y: Math.round(y), z: maxZ() + 1, createdAt: Date.now(), updatedAt: Date.now() } as El;
+  const copy = { ...structuredClone(el), id: uid(), syncId, columnId: null, groupId: null, x: Math.round(x), y: Math.round(y), z: maxZ() + 1, createdAt: Date.now(), updatedAt: Date.now() } as El;
   const changes: Record<string, El> = { [copy.id]: copy };
   if (!el.syncId) changes[el.id] = { ...el, syncId } as El;
   commit(changes);

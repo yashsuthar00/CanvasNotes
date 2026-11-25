@@ -3545,3 +3545,12 @@ body {
     height: 36px;
   }
 }
+
+/* A selected group: dashed frame around everything in it. */
+.group-outline {
+  position: absolute;
+  border: 1.5px dashed var(--accent);
+  border-radius: 10px;
+  pointer-events: none;
+  z-index: 999999;
+}

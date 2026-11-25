@@ -16,6 +16,7 @@ import {
   toast,
   uid,
   dependents,
+  withGroups,
 } from './store';
 import { COLUMN_CHILD_TYPES, DEFAULT_WIDTH, type El, type ElementOf, type ElementType, type Rect } from './types';
 import { allRects, contains, union, viewCenter } from './viewport';
@@ -268,6 +269,9 @@ function withDependents(ids: string[]): El[] {
 // Deep-copies elements with fresh ids, remapping internal references.
 function cloneTree(source: El[], roots: Set<string>, boardId: string, dx: number, dy: number): El[] {
   const idMap = new Map(source.map((el) => [el.id, uid()]));
+  // Copies of a group form a group of their own.
+  const groupMap = new Map<string, string>();
+  const groupOf = (g?: string | null) => (g ? (groupMap.get(g) ?? groupMap.set(g, uid()).get(g)!) : null);
   const now = Date.now();
   let z = maxZ(boardId);
   return source.map((el) => {
@@ -280,6 +284,7 @@ function cloneTree(source: El[], roots: Set<string>, boardId: string, dx: number
       x: isRoot && !el.columnId ? el.x + dx : el.x,
       y: isRoot && !el.columnId ? el.y + dy : el.y,
       z: isRoot ? ++z : el.z,
+      groupId: groupOf(el.groupId),
       createdAt: now,
       updatedAt: now,
     } as El;
@@ -517,6 +522,26 @@ export function distributeSelection(axis: 'horizontal' | 'vertical', ids = getSt
   });
   patchElements(patches);
 }
+
+// Group: the cards stay where they are and from then on are selected, moved and deleted together.
+export function groupCards(ids = getState().selection) {
+  const cards = topLevel(ids);
+  if (cards.length < 2) return toast(t('Select two or more cards to group'));
+  const groupId = uid();
+  patchElements(Object.fromEntries(cards.map((c) => [c.id, { groupId }])));
+  setState({ selection: cards.map((c) => c.id) });
+  toast(t('Grouped {n} cards', { n: cards.length }));
+}
+
+export function ungroupCards(ids = getState().selection) {
+  const { elements } = getState();
+  const grouped = withGroups(ids).filter((id) => elements[id]?.groupId);
+  if (!grouped.length) return;
+  patchElements(Object.fromEntries(grouped.map((id) => [id, { groupId: null }])));
+  toast(t('Ungrouped'));
+}
+
+export const isGrouped = (ids: string[]) => ids.some((id) => getState().elements[id]?.groupId);
 
 export function setLocked(ids: string[], locked: boolean) {
   patchElements(Object.fromEntries(ids.map((id) => [id, { locked }])));

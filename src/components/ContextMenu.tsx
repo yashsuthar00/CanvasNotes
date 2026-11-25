@@ -17,6 +17,9 @@ import {
   duplicateLinkedBoard,
   fetchLinkPreview,
   groupIntoColumn,
+  groupCards,
+  ungroupCards,
+  isGrouped,
   moveToInbox,
   pasteInternal,
   pasteStyle,
@@ -447,6 +450,7 @@ export function ContextMenu({ menu, onClose }: { menu: MenuState; onClose: () =>
       {cards.length > 1 && (
         <>
           <div className="menu-sep" />
+          <Item onClick={() => groupCards(ids)} kbd="Ctrl G">{t('Group')}</Item>
           <Item onClick={() => groupIntoColumn(ids)}>{t('Group into Column')}</Item>
           <Item onClick={() => connectWithLines(ids)}>{t('Connect with Lines')}</Item>
           <Sub id="align" label="Align & Distribute">
@@ -464,6 +468,11 @@ export function ContextMenu({ menu, onClose }: { menu: MenuState; onClose: () =>
             <Item onClick={() => distributeSelection('vertical', ids)}>{t('Distribute Vertically')}</Item>
           </Sub>
         </>
+      )}
+      {isGrouped(ids) && (
+        <Item onClick={() => ungroupCards(ids)} kbd="Ctrl ⇧ G">
+          {t('Ungroup')}
+        </Item>
       )}
       {cards.length === 1 && single && !single.columnId && single.type !== 'column' && <Item onClick={() => groupIntoColumn(ids)}>{t('Group into Column')}</Item>}
 

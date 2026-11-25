@@ -805,6 +805,8 @@ const SHORTCUT_SECTIONS: [string, [string, string][]][] = [
       ['U', 'Move to Unsorted'],
       ['Arrow keys (Shift for 10×)', 'Nudge an object'],
       ['Ctrl ] / Ctrl [', 'Bring forward / send back'],
+      ['Ctrl G / Ctrl Shift G', 'Group / ungroup the selected cards'],
+      ['Ctrl click', 'Select one card inside a group'],
       ['Ctrl Z / Ctrl Shift Z', 'Undo / redo'],
       ['L', 'Line tool'],
       ['D', 'New sketch'],

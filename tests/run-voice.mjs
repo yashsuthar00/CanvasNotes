@@ -91,6 +91,7 @@ await check('A2', 'Playing: time moves, pause holds, clicking the bars jumps, th
   assert((await p.locator('.voice-bars i.on').count()) > 5, 'bars not filled');
   await shot(p, 'playing');
   await p.locator('.voice [aria-label="Pause"]').click();
+  await wait(200); // the pause event lands a frame later
   const held = await p.locator('.voice-bars i.on').count();
   await wait(700);
   assert((await p.locator('.voice-bars i.on').count()) === held, 'kept going after pause');

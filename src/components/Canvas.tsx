@@ -12,6 +12,7 @@ import {
   setState,
   startEditing,
   useStore,
+  selectExactly,
 } from '../store';
 import { COLUMN_CHILD_TYPES, type El, type LineEnd, type Rect } from '../types';
 import {
@@ -43,6 +44,41 @@ import { SelectionBar } from './SelectionBar';
 import { AreaPointers } from './AreaPointers';
 import { ElementBody } from '../elements/ElementBody';
 import { t } from '../i18n';
+import { union, useRectsVersion } from '../viewport';
+
+// A dashed frame around each group that has a selected card, so it's clear what belongs together.
+function GroupOutlines({ drag }: { drag: DragState | null }) {
+  useRectsVersion();
+  const groups = useStore((s) => {
+    const ids = new Set<string>();
+    for (const id of s.selection) if (s.elements[id]?.groupId) ids.add(s.elements[id].groupId!);
+    if (!ids.size) return '';
+    return [...ids]
+      .map((g) => Object.values(s.elements).filter((el) => el.groupId === g && el.section === 'canvas' && !el.columnId && el.parentId === s.boardId).map((el) => el.id).join(','))
+      .filter((list) => list.includes(','))
+      .join(';');
+  });
+  if (!groups) return null;
+  const rects = allRects();
+  return (
+    <>
+      {groups.split(';').map((list) => {
+        const rs = list.split(',').flatMap((id) => rects.get(id) ?? []);
+        if (rs.length < 2) return null;
+        const box = union(rs);
+        const moving = drag && list.split(',').every((id) => drag.ids.includes(id));
+        const pad = 8;
+        return (
+          <div
+            key={list}
+            className="group-outline"
+            style={{ left: box.x - pad, top: box.y - pad, width: box.w + pad * 2, height: box.h + pad * 2, transform: moving ? `translate(${drag.dx}px, ${drag.dy}px)` : undefined }}
+          />
+        );
+      })}
+    </>
+  );
+}
 
 type Gesture =
   | { kind: 'pan'; startX: number; startY: number; vx: number; vy: number; touchTap?: { t0: number; moved: boolean } }
@@ -57,6 +93,7 @@ type Gesture =
       moved: boolean;
       wasSelected: boolean;
       shift: boolean;
+      exact?: boolean;
       ids: string[];
     }
   | { kind: 'resize'; id: string; startX: number; startW: number }
@@ -310,9 +347,14 @@ export function Canvas() {
     if (e.pointerType === 'touch') return startTouchItem(e, el.id, state.selection.includes(el.id));
     const wasSelected = state.selection.includes(el.id);
     let selection = state.selection;
-    if (e.shiftKey) selection = wasSelected ? selection : [...selection, el.id];
-    else if (!wasSelected) selection = [el.id];
-    setState({ selection, editingId: state.editingId === el.id ? el.id : null });
+    const exact = (e.ctrlKey || e.metaKey) && !e.shiftKey && !!el.groupId;
+    if (exact) selectExactly([el.id]);
+    else {
+      if (e.shiftKey) selection = wasSelected ? selection : [...selection, el.id];
+      else if (!wasSelected) selection = [el.id];
+      setState({ selection, editingId: state.editingId === el.id ? el.id : null });
+    }
+    selection = getState().selection;
     gesture.current = {
       kind: 'item',
       id: el.id,
@@ -321,6 +363,7 @@ export function Canvas() {
       moved: false,
       wasSelected,
       shift: e.shiftKey,
+      exact,
       ids: selection,
     };
     // Pointer capture starts with the drag itself, so clicks and double-clicks still reach the card.
@@ -580,13 +623,15 @@ export function Canvas() {
     const changes: Record<string, El> = {};
     const now = Date.now();
     let z = maxZ();
+    // Raised in their current stacking order, so a group's voice notes stay above its picture.
+    d = { ...d, ids: [...d.ids].sort((a, b) => (elements[a]?.z ?? 0) - (elements[b]?.z ?? 0)) };
     if (target?.kind === 'column') {
       let order = columnOrderAt(target.id, target.index, d.ids);
       const step = 0.001;
       const sorted = [...d.ids].sort((a, b) => (d.startRects.get(a)?.y ?? 0) - (d.startRects.get(b)?.y ?? 0));
       for (const id of sorted) {
         const el = elements[id];
-        changes[id] = { ...el, columnId: target.id, order, updatedAt: now } as El;
+        changes[id] = { ...el, columnId: target.id, order, groupId: null, updatedAt: now } as El;
         order += step;
       }
     } else {
@@ -647,7 +692,7 @@ export function Canvas() {
           else if (!g.shift && g.wasSelected && getState().selection.length === 1 && el && CLICK_TO_EDIT.has(el.type)) {
             // Clicking an already-selected card starts editing it.
             startEditing(g.id);
-          } else if (!g.shift) setState({ selection: [g.id] });
+          } else if (!g.shift && !g.exact) setState({ selection: [g.id] });
         }
         setDrag(null);
         document.querySelectorAll('.crumb.drop-target').forEach((n) => n.classList.remove('drop-target'));
@@ -706,7 +751,7 @@ export function Canvas() {
     if (lastPointerType.current === 'touch') return;
     const sel = getState().selection;
     if (!sel.includes(el.id)) setState({ selection: [el.id], editingId: null });
-    setMenu({ x: e.clientX, y: e.clientY, targetIds: sel.includes(el.id) ? sel : [el.id] });
+    setMenu({ x: e.clientX, y: e.clientY, targetIds: sel.includes(el.id) ? sel : getState().selection });
   };
 
   const onBackgroundContextMenu = (e: React.MouseEvent) => {
@@ -782,6 +827,7 @@ export function Canvas() {
               </div>
             );
           })}
+          <GroupOutlines drag={drag} />
           {marquee && <div className="marquee" style={{ left: marquee.x, top: marquee.y, width: marquee.w, height: marquee.h }} />}
         </div>
         {loaded && topLevel.length === 0 && !locked && <EmptyBoardHint />}

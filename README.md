@@ -156,6 +156,10 @@ Right-click anything for its menu. `?` lists every shortcut.
 - **Move around** with the arrow keys when nothing is selected (Shift goes faster); with cards selected they nudge the cards instead.
 - **Lost in empty space?** Arrows on the board's edges point to every group of cards off screen; click or tap one to fly there. Groups that lie in nearly the same direction share an arrow (with a count) until you get closer. **N** jumps to the next group of cards, **Shift N** to the previous one.
 - **Select / Move switch** (bottom left of the board, or **V** / **H**): in Move mode dragging anywhere, even on a card, only moves the view; nothing can be selected, edited, moved or opened by accident. It stays on until you switch back or pick a tool.
+- **Group** (right-click → *Group*, or **Ctrl G**): the selected cards stay exactly
+  where they are, but from then on clicking one selects all of them, so they move,
+  copy and delete together (a dashed frame shows the group). **Ctrl-click** picks
+  one card inside it; **Ctrl Shift G** ungroups.
 - **Unsorted** (`U`) is a holding area for each board.
 - **Templates**: right-click a board → *Convert to Template*.
 - **Labels**: right-click → *Labels…*, then filter search by label.
@@ -206,7 +210,11 @@ land centred on the pointer at every zoom (7 checks, about 15 seconds).
 and record, play, seek, undo and redo, deleting mid-recording, a blocked
 microphone, a failed upload, published boards (17 checks, about a minute and a half).
 
-These seven start their own servers (ports 5192–5216), so nothing needs to be
+`npm run test:group` checks Group: cards keep their places, move, copy and
+delete together, keep their stacking order, Ctrl-click picks one, ungroup,
+undo, a reload, phones (8 checks, about 20 seconds).
+
+These eight start their own servers (ports 5192–5217), so nothing needs to be
 running. With `EVIDENCE_DIR=<folder>` they also keep screenshots and a JSON
 report there.
 

@@ -217,6 +217,8 @@ export interface ElementOf<T extends ElementType> {
   locked?: boolean;
   // Synced copies share a syncId; editing one updates them all.
   syncId?: string | null;
+  // Cards with the same groupId are selected, moved and deleted together.
+  groupId?: string | null;
   // Colour as a strip along the top instead of the whole background.
   colorStrip?: boolean;
   reactions?: string[];

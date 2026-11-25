@@ -47,6 +47,8 @@ import {
   centerPlacement,
   fetchLinkPreview,
   toggleVoice,
+  groupCards,
+  ungroupCards,
 } from './actions';
 import { openDrawing } from './elements/Sketch';
 import { RecordingBar } from './elements/Voice';
@@ -179,6 +181,10 @@ function onKeyDown(e: KeyboardEvent) {
   } else if (mod && key === 'd') {
     e.preventDefault();
     duplicate();
+  } else if (mod && key === 'g') {
+    e.preventDefault();
+    if (e.shiftKey) ungroupCards(selection);
+    else groupCards(selection);
   } else if (mod && key === 'c') {
     if (copySelection()) e.preventDefault();
   } else if (mod && key === 'x') {

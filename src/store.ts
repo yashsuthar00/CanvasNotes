@@ -111,8 +111,24 @@ export function getState(): State {
 }
 
 export function setState(partial: Partial<State>) {
+  // Selecting one card of a group selects the whole group.
+  if (partial.selection) partial = { ...partial, selection: withGroups(partial.selection, partial.elements ?? state.elements) };
   state = { ...state, ...partial };
   listeners.forEach((l) => l());
+}
+
+// Ctrl-click: just this card, even inside a group.
+export function selectExactly(ids: string[]) {
+  state = { ...state, selection: ids, editingId: null };
+  listeners.forEach((l) => l());
+}
+
+export function withGroups(ids: string[], elements = state.elements): string[] {
+  const groups = new Set(ids.map((id) => elements[id]?.groupId).filter(Boolean));
+  if (!groups.size) return ids;
+  const out = new Set(ids);
+  for (const el of Object.values(elements)) if (el.groupId && groups.has(el.groupId) && el.section === 'canvas' && !el.columnId) out.add(el.id);
+  return out.size === ids.length ? ids : [...out];
 }
 
 function subscribe(listener: () => void) {
